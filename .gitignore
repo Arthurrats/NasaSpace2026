@@ -11,7 +11,3 @@ __pycache__/
 
 # CSVs originais: só os Parquets vão para o repositório - dados
 *.csv
-
-PORT=
-API_URL=
-API_KEY=
