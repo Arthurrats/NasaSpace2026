@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.env
+.env.*
+!.env.example
+
+# CSVs originais: só os Parquets vão para o repositório - dados
+*.csv
+
+PORT=
+API_URL=
+API_KEY=
