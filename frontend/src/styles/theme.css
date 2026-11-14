@@ -1,0 +1,24 @@
+:root {
+  --background: #101B19;
+  --surface: #1D302A;
+  --accent: #78C850;
+  --indicator: #B6E36B;
+  --heat: #FF8A32;
+  --critical: #E84B32;
+  --text: #F2F5F0;
+  --muted: #9BAAA2;
+
+  --surface-raised: color-mix(in srgb, var(--surface) 88%, var(--muted));
+  --border: color-mix(in srgb, var(--surface) 83%, var(--muted));
+  --border-strong: color-mix(in srgb, var(--surface) 57%, var(--muted));
+
+  --heading: 'Barlow Condensed', Impact, sans-serif;
+  --body: 'Inter Variable', Inter, sans-serif;
+  --card-radius: 15px;
+  --control-radius: 8px;
+  --page-inset: clamp(16px, 4vw, 64px);
+}
+
+.intensity-high { --intensity-color: var(--critical); }
+.intensity-medium { --intensity-color: var(--heat); }
+.intensity-low { --intensity-color: var(--indicator); }

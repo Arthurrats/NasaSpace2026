@@ -1,5 +1,5 @@
 <script>
-  import { dailyActivity } from '../lib/demo.js';
+  import { dailyActivity } from '../data/demo.js';
 
   const ticks = [300, 250, 200, 150, 100, 50, 0];
   const chartBottom = 157;
@@ -16,8 +16,8 @@
   <desc id="trend-desc">{dailyActivity.map(({ label, value }) => label + ': ' + value).join(', ')}. Dados de exemplo.</desc>
   <defs>
     <linearGradient id="trend-fill" x2="0%" y2="100%">
-      <stop stop-color="#ff895c" stop-opacity=".35" />
-      <stop offset="1" stop-color="#ff895c" stop-opacity=".02" />
+      <stop stop-color="var(--heat)" stop-opacity=".36" />
+      <stop offset="1" stop-color="var(--heat)" stop-opacity="0" />
     </linearGradient>
   </defs>
   {#each ticks as tick}
@@ -33,7 +33,7 @@
 </svg>
 
 <style>
-  .trend-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
-  .trend-point { fill: var(--accent); stroke: #192321; stroke-width: 1.5; }
-  .chart-grid { stroke: #32423d; stroke-dasharray: 3 4; }
+  .trend-line { fill: none; stroke: var(--heat); stroke-width: 2.5; stroke-linejoin: round; }
+  .trend-point { fill: var(--heat); stroke: var(--surface); stroke-width: 1.5; }
+  .chart-grid { stroke: var(--border-strong); stroke-dasharray: 3 4; }
 </style>

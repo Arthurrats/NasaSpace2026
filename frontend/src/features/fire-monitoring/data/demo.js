@@ -37,9 +37,9 @@ export const hotspots = [
 ];
 
 export const metrics = [
-  { label: 'Focos de incêndio', value: '1.284', detail: 'Total no período' },
-  { label: 'Regiões no comparativo', value: '05', detail: 'Cobertura de exemplo' },
-  { label: 'Alta intensidade', value: '216', detail: 'Focos no período' },
+  { id: 'hotspots', label: 'Focos de incêndio', value: '1.284', detail: 'Total no período' },
+  { id: 'regions', label: 'Regiões no comparativo', value: '05', detail: 'Cobertura de exemplo' },
+  { id: 'critical', label: 'Alta intensidade', value: '216', detail: 'Focos no período' },
 ];
 
 export const dailyActivity = [

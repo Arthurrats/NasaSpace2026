@@ -1,0 +1,53 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: fit-content;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: var(--control-radius);
+  font-size: .875rem;
+  font-weight: 700;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.button-outline { border: 1px solid var(--border-strong); }
+.button-outline:hover { background: var(--surface); border-color: var(--indicator); }
+.button-primary { min-height: 52px; padding-inline: 18px; background: var(--accent); color: var(--background); }
+.button-primary:hover { background: var(--indicator); }
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--indicator);
+  font-size: .69rem;
+  line-height: 1.45;
+  font-weight: 750;
+  letter-spacing: .12em;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--indicator);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--indicator) 18%, transparent);
+}
+
+.card { min-width: 0; border: 1px solid var(--border); border-radius: var(--card-radius); background: var(--surface); }
+.demo-label {
+  width: fit-content;
+  padding: 6px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--control-radius);
+  color: var(--text);
+  font-size: .71rem;
+  font-weight: 600;
+}
+
+.chart { display: block; width: calc(100% - 36px); height: auto; margin-inline: 18px; }
+.chart text { font-size: 10px; fill: var(--muted); font-variant-numeric: tabular-nums; }

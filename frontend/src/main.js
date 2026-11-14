@@ -1,7 +1,9 @@
 import '@fontsource/barlow-condensed/latin-600.css';
 import '@fontsource/barlow-condensed/latin-700.css';
 import '@fontsource-variable/inter';
-import './styles.css';
+import './styles/theme.css';
+import './styles/base.css';
+import './styles/components.css';
 import { mount } from 'svelte';
 import App from './App.svelte';
 

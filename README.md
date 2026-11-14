@@ -1,12 +1,13 @@
-# Vigia Terra
+# prevIA
 
 Base para um observatório de incêndios florestais com landing page, painel demonstrativo e ambiente Python independente para pesquisa.
 
 | Pasta | Responsabilidade |
 | --- | --- |
-| `frontend/` | Interface Svelte e Vite, com início em `/#/` e painel em `/#/painel`. Os dados de exemplo ficam em `src/lib/demo.js`. |
+| `frontend/` | Interface Svelte e Vite, com início em `/#/` e painel em `/#/painel`. |
 | `backend/` | Aplicação Flask com `GET /api/health` para verificar o serviço. |
 | `research/` | Ambiente para experimentos e notebooks, com dependências e venv próprias. |
+| `docs/` | [Guia da estrutura, do layout e da identidade visual](docs/README.md). |
 
 O painel usa dados fictícios. A opção **Minha região** usa o Brasil como recorte de exemplo. A seleção altera a área visível do mapa. Os três módulos podem rodar separadamente.
 
@@ -61,14 +62,3 @@ Confira `http://127.0.0.1:5000/api/health`. Em desenvolvimento, o Vite também e
 ## Pesquisa
 
 Veja [o guia do ambiente Python](research/README.md). A cartografia usa [Natural Earth via World Atlas](https://github.com/topojson/world-atlas).
-
-## Imagem da landing page
-
-O arquivo `frontend/public/incendio-aereo.webp` foi criado com a ferramenta integrada ImageGen.
-
-<details>
-<summary>Prompt usado</summary>
-
-Photorealistic editorial hero photograph for a Portuguese wildfire observation site, cinematic wide landscape 3:2. Aerial oblique view above an immense densely forested mountain valley at blue hour, with several natural winding wildfire lines and ember patches concentrated across the lower center and lower right, smoky deep teal mountains layered into the horizon, a column of billowing smoke in the upper-right catching warm copper light, believable scale and topography, subtle photographic grain, atmospheric but detailed. Smoky near-black blue-green negative space on the upper left to allow text overlay added separately, bright orange fire restrained to small areas. No people, structures, text, logos, graphics, framing or watermarks.
-
-</details>

@@ -2,7 +2,7 @@
   import { geoGraticule10, geoMercator, geoNaturalEarth1, geoPath } from 'd3-geo';
   import { mesh, feature } from 'topojson-client';
   import world from 'world-atlas/countries-110m.json';
-  import { hotspots, regions } from '../lib/demo.js';
+  import { hotspots, regions } from '../data/demo.js';
 
   let { region = 'world', id = 'fire-map' } = $props();
 
@@ -35,8 +35,8 @@
   <title id="{id}-title">Focos de incêndio ilustrativos · {regions[region].name}</title>
   <defs>
     <radialGradient id="{id}-sea">
-      <stop stop-color="#172a29" />
-      <stop offset="1" stop-color="#101c1c" />
+      <stop stop-color="var(--surface)" />
+      <stop offset="1" stop-color="var(--background)" />
     </radialGradient>
     <clipPath id="{id}-clip"><rect {width} {height} /></clipPath>
   </defs>
@@ -48,7 +48,7 @@
     {#each hotspots as hotspot (hotspot.name)}
       {@const [x, y] = projection(hotspot.coordinates)}
       {@const radius = radii[hotspot.intensity] * (region === 'world' ? 1 : 1.25)}
-      <g class="hotspot {hotspot.intensity}" transform="translate({x} {y})">
+      <g class="hotspot intensity-{hotspot.intensity}" transform="translate({x} {y})">
         <title>{hotspot.name} (exemplo)</title>
         <circle r={radius * 2.4} opacity=".12" />
         <circle r={radius * 1.65} opacity=".22" />
@@ -60,10 +60,8 @@
 
 <style>
   .fire-map { display: block; width: 100%; height: auto; overflow: hidden; }
-  .grid { fill: none; stroke: #344946; stroke-width: .65; opacity: .55; }
-  .land { fill: #304541; stroke: #4a5d55; stroke-width: .8; }
-  .borders { fill: none; stroke: #495e55; stroke-width: .65; }
-  .high { fill: var(--accent); }
-  .medium { fill: #ffc478; }
-  .low { fill: #f1d9a1; }
+  .grid { fill: none; stroke: var(--border-strong); stroke-width: .65; opacity: .55; }
+  .land { fill: var(--map-land, var(--surface-raised)); stroke: var(--border-strong); stroke-width: .8; }
+  .borders { fill: none; stroke: var(--border-strong); stroke-width: .65; }
+  .hotspot { fill: var(--intensity-color); }
 </style>
