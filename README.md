@@ -1,6 +1,6 @@
-<<<<<<< HEAD
+
 # NasaSpace2026
-=======
+
 # Vigia Terra
 
 Base para um observatório de incêndios florestais com landing page, painel demonstrativo e ambiente Python independente para pesquisa.
@@ -76,4 +76,3 @@ O arquivo `frontend/public/incendio-aereo.webp` foi criado com a ferramenta inte
 Photorealistic editorial hero photograph for a Portuguese wildfire observation site, cinematic wide landscape 3:2. Aerial oblique view above an immense densely forested mountain valley at blue hour, with several natural winding wildfire lines and ember patches concentrated across the lower center and lower right, smoky deep teal mountains layered into the horizon, a column of billowing smoke in the upper-right catching warm copper light, believable scale and topography, subtle photographic grain, atmospheric but detailed. Smoky near-black blue-green negative space on the upper left to allow text overlay added separately, bright orange fire restrained to small areas. No people, structures, text, logos, graphics, framing or watermarks.
 
 </details>
->>>>>>> 090db39692d03e81e41be1462e1a12fed91217f1
