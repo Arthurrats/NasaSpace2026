@@ -1,37 +1,24 @@
-import nwUrl from './quadrants/nw.json?url&no-inline';
-import neUrl from './quadrants/ne.json?url&no-inline';
-import swUrl from './quadrants/sw.json?url&no-inline';
-import seUrl from './quadrants/se.json?url&no-inline';
-
 export const quadrants = [
-  { id: 'nw', name: 'Noroeste', bounds: [[-180, 0], [0, 85]], url: nwUrl },
-  { id: 'ne', name: 'Nordeste', bounds: [[0, 0], [180, 85]], url: neUrl },
-  { id: 'sw', name: 'Sudoeste', bounds: [[-180, -85], [0, 0]], url: swUrl },
-  { id: 'se', name: 'Sudeste', bounds: [[0, -85], [180, 0]], url: seUrl },
+  { id: 'nw', name: 'Noroeste', bounds: [[-180, 0], [0, 85]] },
+  { id: 'ne', name: 'Nordeste', bounds: [[0, 0], [180, 85]] },
+  { id: 'sw', name: 'Sudoeste', bounds: [[-180, -85], [0, 0]] },
+  { id: 'se', name: 'Sudeste', bounds: [[0, -85], [180, 0]] },
 ];
 
-const cache = new Map();
-
-function load({ id, url }) {
-  if (!cache.has(id)) {
-    cache.set(id, fetch(url).then(response => {
-      if (!response.ok) throw new Error('Quadrant request failed');
-      return response.json();
-    }).catch(error => {
-      cache.delete(id);
-      throw error;
-    }));
+export async function loadTileLayer(viewport, { sensor, country, startDate, endDate, layer, metric, clip }, signal) {
+  const search = new URLSearchParams({ sensor, country, start_date: startDate, end_date: endDate });
+  if (layer === 'heat') {
+    search.set('layer', 'heat');
+    search.set('metric', metric ?? 'detections');
   }
-  return cache.get(id);
-}
-
-export async function loadVisiblePoints(viewport) {
-  if (!viewport) return (await Promise.all(quadrants.map(load))).flat();
-
-  const [[west, south], [east, north]] = viewport;
-  const longitudeRanges = west <= east ? [[west, east]] : [[west, 180], [-180, east]];
-  const visible = quadrants.filter(({ bounds: [[left, bottom], [right, top]] }) =>
-    south < top && north > bottom && longitudeRanges.some(([start, end]) => start < right && end > left));
-  return (await Promise.all(visible.map(load))).flat().filter(({ coordinates: [lng, lat] }) =>
-    lat >= south && lat <= north && longitudeRanges.some(([start, end]) => lng >= start && lng <= end));
+  if (clip) search.set('clip', clip.flat().join(','));
+  const tileParams = new URLSearchParams(search);
+  search.set('format', 'count');
+  if (viewport) search.set('bbox', viewport.flat().join(','));
+  const response = await fetch('/api/map/foci?' + search, { signal, cache: 'no-cache' });
+  if (!response.ok) throw new Error('Não foi possível consultar os focos na API.');
+  const payload = await response.json();
+  if (!Number.isInteger(payload.total) || typeof payload.revision !== 'string') throw new Error('A API retornou um formato de dados inválido.');
+  tileParams.set('v', payload.revision);
+  return { version: response.headers.get('ETag'), total: payload.total, points: { tileQuery: tileParams.toString() } };
 }

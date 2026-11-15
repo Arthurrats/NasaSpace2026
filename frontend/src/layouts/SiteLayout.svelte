@@ -1,8 +1,11 @@
 <script>
   import SiteFooter from './SiteFooter.svelte';
   import SiteHeader from './SiteHeader.svelte';
+  import PlatformSidebar from './PlatformSidebar.svelte';
 
-  let { currentPage, onLogout, children } = $props();
+  let { currentPage, landingSection, onLogout, children } = $props();
+  const mapScreen = $derived(currentPage === '#/mapa' || currentPage === '#/timelapse');
+  const inPlatform = $derived(currentPage !== '#/' && currentPage !== '#/login');
   let content;
 
   function skipToContent(event) {
@@ -13,13 +16,14 @@
 
 <div class="site-layout">
   <a class="skip-link" href="#conteudo" onclick={skipToContent}>Pular para o conteúdo</a>
-  <SiteHeader {currentPage} {onLogout} />
+  {#if !inPlatform}<SiteHeader {currentPage} {landingSection} />{/if}
 
-  <main id="conteudo" tabindex="-1" bind:this={content}>
-    {@render children()}
-  </main>
+  <div class:platform-shell={inPlatform}>
+    {#if inPlatform}<PlatformSidebar {currentPage} {onLogout} />{/if}
+    <main id="conteudo" class:map-screen={mapScreen} tabindex="-1" bind:this={content}>{@render children()}</main>
+  </div>
 
-  <SiteFooter />
+  {#if !inPlatform}<SiteFooter />{/if}
 </div>
 
 <style>
@@ -29,7 +33,11 @@
     min-height: 100svh;
   }
 
-  main { flex: 1; }
+  .platform-shell { display: flex; height: 100svh; min-height: 0; }
+  main { min-width: 0; flex: 1; }
+  .platform-shell main { min-height: 0; overflow: auto; }
+  .platform-shell main.map-screen { overflow: hidden; }
+  @media (max-width: 760px) { .platform-shell { flex-direction: column; } }
   main:focus { outline: none; }
 
   .skip-link:focus {

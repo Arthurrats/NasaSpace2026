@@ -1,0 +1,40 @@
+export const activityCopy = {
+  forecast: {
+    title: 'Previsor',
+    description: 'Explore a projeção de focos ativos a partir do histórico de detecções por satélite.',
+    series: 'Projeção diária de detecções',
+    seriesMethod: 'Cada estimativa usa a média das últimas quatro ocorrências do mesmo dia da semana. A faixa empírica usa os percentis 10 e 90 dos erros em simulações no próprio histórico.',
+    season: 'Mapa da projeção sazonal',
+    seasonMethod: 'A projeção repete, para cada mês do ciclo seguinte, a contagem e a distribuição espacial do mesmo mês do ano de referência. Focos muito próximos podem se sobrepor no mapa.',
+    empty: 'Sem detecções registradas no recorte para calcular a projeção.',
+  },
+  calendar: {
+    title: 'Calendário',
+    description: 'Explore a atividade histórica de queima, os dias de pico e os meses com mais focos na sua área de interesse.',
+    activity: 'Atividade observada',
+    history: 'Comparação histórica',
+    reference: 'Média plurianual',
+    historyUnavailable: 'A média plurianual requer pelo menos dois anos de referência anteriores com arquivos para a mesma área e sensor.',
+    detectionNote: 'Os satélites podem registrar mais de um foco para o mesmo incêndio. O acervo local não inclui notificações oficiais.',
+    method: 'Os períodos críticos são os três meses com maior média diária de detecções. Um dia é sinalizado quando registra pelo menos dois focos e supera o percentil 90 dos 28 dias anteriores, com um mínimo de 14 dias de referência.',
+    dayLegend: 'Mais focos no mês',
+    zero: 'Dias sem registros podem incluir lacunas nas observações por satélite.',
+  },
+  area: 'Área de interesse',
+  customArea: 'Limitar por coordenadas',
+  drawArea: 'Desenhar área',
+  cancelDraw: 'Cancelar desenho',
+  clearArea: 'Remover limite por coordenadas',
+  drawHint: 'Arraste no mapa para delimitar um retângulo ou use os campos de coordenadas nos filtros.',
+  areaError: 'Defina oeste antes de leste e sul antes de norte, dentro dos limites da América do Sul.',
+  loading: 'Consultando o histórico de focos…',
+  failure: 'Não foi possível consultar o histórico de focos.',
+  mapFailure: 'Não foi possível carregar os focos para este recorte.',
+  limitation: 'Projeção exploratória baseada no arquivo histórico. Para alertas operacionais, consulte observações atualizadas e fontes oficiais.',
+};
+
+export const activityCountries = {
+  all: 'América do Sul', argentina: 'Argentina', bolivia: 'Bolívia', brasil: 'Brasil', chile: 'Chile',
+  colombia: 'Colômbia', equador: 'Equador', guiana: 'Guiana', paraguai: 'Paraguai', peru: 'Peru',
+  suriname: 'Suriname', uruguai: 'Uruguai', venezuela: 'Venezuela',
+};

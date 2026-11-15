@@ -1,40 +1,41 @@
 <script>
-  import { Activity, Flame, Globe, House, LayoutDashboard, LogIn, LogOut, Mail, Menu, Moon, Sun, Users, X } from '@lucide/svelte';
+  import { Activity, CircleHelp, Database, Flame, Globe, House, LogIn, Mail, Menu, Moon, Route, Sun, Users, X } from '@lucide/svelte';
   import BrandLockup from './BrandLockup.svelte';
 
-  let { currentPage, onLogout } = $props();
+  let { currentPage, landingSection } = $props();
   let navigation;
   let theme = $state(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 
   const landingSections = [
-    { href: '#solucao', title: 'Solução', icon: Globe },
-    { href: '#problema', title: 'O problema', icon: Flame },
-    { href: '#recursos', title: 'Recursos', icon: Activity },
-    { href: '#equipe', title: 'Equipe', icon: Users },
-    { href: '#contato', title: 'Contato', icon: Mail },
+    { id: 'solucao', title: 'Solução', icon: Globe, desktop: true },
+    { id: 'problema', title: 'Impactos', icon: Flame },
+    { id: 'recursos', title: 'Recursos', icon: Activity, desktop: true },
+    { id: 'dados', title: 'Dados', icon: Database, desktop: true },
+    { id: 'uso', title: 'Como usar', icon: Route, desktop: true },
+    { id: 'equipe', title: 'Equipe', icon: Users, desktop: true },
+    { id: 'perguntas', title: 'Perguntas frequentes', icon: CircleHelp },
+    { id: 'contato', title: 'Contato', icon: Mail },
   ];
   const isLanding = $derived(currentPage === '#/');
-  const isPlatform = $derived(currentPage === '#/painel' || currentPage === '#/mapa');
-  const home = { href: '#solucao', title: 'Início', icon: House };
-  const platformPages = [home, { href: '#/painel', title: 'Dashboard', icon: LayoutDashboard }, { href: '#/mapa', title: 'Mapa', icon: Globe }];
-  const pages = $derived(isLanding ? landingSections : isPlatform ? platformPages : [home]);
+  const pages = $derived(isLanding ? landingSections : [{ id: 'solucao', title: 'Início', icon: House, desktop: true }]);
   const themeAction = $derived(theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro');
 
   function toggleTheme() {
     theme = theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.content = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
     try { localStorage.setItem('previa:theme', theme); } catch {}
   }
 </script>
 
-<header>
+<header class:landing={isLanding}>
   <div class="header-inner">
     <a class="brand" href="#solucao" aria-label="prevIA, início"><BrandLockup /></a>
 
     <nav class="desktop-navigation" aria-label="Navegação principal">
-      {#each pages as { href, title }}
-        <a {href} aria-current={currentPage === href ? 'page' : undefined}>{title}</a>
+      {#each pages.filter((page) => page.desktop) as { id, title } (id)}
+        <a href={'#' + id} aria-current={isLanding && landingSection === id ? 'location' : undefined}>{title}</a>
       {/each}
     </nav>
 
@@ -42,17 +43,13 @@
       <button type="button" class="icon-button" aria-label={themeAction} title={themeAction} onclick={toggleTheme}>
         {#if theme === 'dark'}<Sun size={20} aria-hidden="true" />{:else}<Moon size={20} aria-hidden="true" />{/if}
       </button>
-      {#if isPlatform}
-        <button type="button" class="button button-outline account-button" aria-label="Sair da sessão" onclick={onLogout}>
-          <LogOut size={18} aria-hidden="true" /><span>Sair</span>
-        </button>
-      {:else if currentPage !== '#/login'}
+      {#if isLanding}
         <a class="button button-outline account-button" href="#/login" aria-label="Login">
           <LogIn size={18} aria-hidden="true" /><span>Login</span>
         </a>
       {/if}
       <button type="button" class="icon-button mobile-menu" aria-label="Abrir menu" aria-haspopup="dialog" onclick={() => navigation.showModal()}>
-        <Menu size={23} />
+        <Menu size={23} aria-hidden="true" />
       </button>
     </div>
   </div>
@@ -61,12 +58,12 @@
 <dialog class="mobile-drawer" bind:this={navigation} aria-labelledby="menu-title">
   <div class="drawer-header">
     <strong id="menu-title">Menu</strong>
-    <button class="icon-button" aria-label="Fechar menu" onclick={() => navigation.close()}><X size={22} /></button>
+    <button type="button" class="icon-button" aria-label="Fechar menu" onclick={() => navigation.close()}><X size={22} aria-hidden="true" /></button>
   </div>
   <nav aria-label="Navegação móvel">
-    {#each pages as { href, title, icon: Icon }}
-      <a {href} aria-current={currentPage === href ? 'page' : undefined} onclick={() => navigation.close()}>
-        <Icon size={18} /> {title}
+    {#each pages as { id, title, icon: Icon } (id)}
+      <a href={'#' + id} aria-current={isLanding && landingSection === id ? 'location' : undefined} onclick={() => navigation.close()}>
+        <Icon size={18} aria-hidden="true" /> {title}
       </a>
     {/each}
   </nav>
@@ -79,6 +76,11 @@
     top: 0;
     border-bottom: 1px solid var(--border);
     background: var(--background);
+  }
+
+  header.landing {
+    background: color-mix(in srgb, var(--background) 94%, transparent);
+    backdrop-filter: blur(16px);
   }
 
   .header-inner {
@@ -99,28 +101,7 @@
   .account-button { gap: 8px; background: transparent; color: var(--text); }
   .account-button :global(svg) { color: var(--accent); }
 
-  @supports (animation-timeline: scroll()) {
-    @media (prefers-reduced-motion: no-preference) {
-      header::after {
-        content: '';
-        position: absolute;
-        inset: auto 0 -1px;
-        height: 2px;
-        background: var(--accent);
-        pointer-events: none;
-        transform-origin: left;
-        animation: reading-progress linear both;
-        animation-timeline: scroll(root block);
-      }
-    }
-  }
-
-  @keyframes reading-progress {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
-  }
-
-  .desktop-navigation { display: flex; align-items: stretch; gap: 32px; align-self: stretch; }
+  .desktop-navigation { display: flex; align-items: stretch; gap: clamp(18px, 2.25vw, 32px); align-self: stretch; }
   .desktop-navigation a {
     display: grid;
     align-items: center;
@@ -138,6 +119,7 @@
     inset: auto 0 -1px;
     height: 2px;
     background: var(--accent);
+    border-radius: 2px 2px 0 0;
   }
 
   .icon-button {
@@ -167,6 +149,8 @@
     border-left: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .mobile-drawer::backdrop { background: color-mix(in srgb, var(--background) 80%, transparent); }

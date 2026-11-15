@@ -4,6 +4,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
+ARG VITE_GOOGLE_MAPS_API_KEY=
+ARG VITE_GOOGLE_MAP_ID=DEMO_MAP_ID
+ENV VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY} VITE_GOOGLE_MAP_ID=${VITE_GOOGLE_MAP_ID}
+
 COPY index.html vite.config.js ./
 COPY public ./public
 COPY src ./src

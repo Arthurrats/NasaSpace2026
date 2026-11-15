@@ -2,7 +2,7 @@
   import { loginCopy as copy } from '../content/platform.js';
   import { ArrowRight, UserRound } from '@lucide/svelte';
 
-  let { onLogin } = $props();
+  let { onLogin, busy = false } = $props();
 </script>
 
 <section class="login" aria-labelledby="login-title">
@@ -15,8 +15,8 @@
       <UserRound size={22} aria-hidden="true" />
       <div><strong>{copy.account}</strong><p>{copy.email}</p></div>
     </div>
-    <button type="button" class="button button-primary" onclick={onLogin}>
-      {copy.action} <ArrowRight size={18} aria-hidden="true" />
+    <button type="button" class="button button-primary" onclick={onLogin} disabled={busy}>
+      {busy ? 'Iniciando sessão…' : copy.action} <ArrowRight size={18} aria-hidden="true" />
     </button>
   </div>
 </section>

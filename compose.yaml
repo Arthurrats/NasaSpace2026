@@ -2,9 +2,13 @@ name: vigia-terra
 
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
+        VITE_GOOGLE_MAP_ID: ${VITE_GOOGLE_MAP_ID:-DEMO_MAP_ID}
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:${PORT_FRONTEND:-8080}:80"
     depends_on:
       backend:
         condition: service_healthy
@@ -13,12 +17,36 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: ./frontend
 
   backend:
     build: ./backend
+    environment:
+      PREVIA_DATA_DIR: /data/parquet
+      PREVIA_REDIS_URL: ${PREVIA_REDIS_URL:-redis://redis:6379/0}
+    volumes:
+      - ${PREVIA_DATA_HOST_DIR:-./dados/parquet}:/data/parquet:ro
+    ports:
+      - "127.0.0.1:${PORT_BACKEND:-5000}:5000"
     healthcheck:
       test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:5000/api/health', timeout=2).close()"]
       interval: 5s
+      timeout: 3s
+      retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: ./backend
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
       timeout: 3s
       retries: 5
 

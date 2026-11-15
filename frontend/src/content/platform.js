@@ -1,37 +1,90 @@
 export const dashboardCopy = {
   "label": "OBSERVATÓRIO DE INCÊNDIOS FLORESTAIS",
-  "title": "Dashboard de focos",
-  "description": "Acompanhe os indicadores, a evolução diária e os totais por país na América do Sul.",
+  "title": "Focos na América do Sul",
+  "description": "Compare as detecções sul-americanas por país, sensor e período.",
   "sample": "Dados simulados",
-  "metrics": "Indicadores de exemplo",
+  "metrics": "Indicadores observados",
   "ranking": "Focos por país",
   "rankingDetail": "Comparativo no período",
   "daily": "Evolução diária",
-  "dailyDetail": "Focos ao longo de uma semana de exemplo",
-  "depth": "Comparativo 3D",
-  "depthDetail": "Focos por país em perspectiva"
+  "dailyDetail": "Detecções mensais no período filtrado",
+  "depth": "Comparativo interativo 3D",
+  "depthDetail": "Focos observados por país"
 };
 
+export const sectorNames = [
+  'Noroeste', 'Norte', 'Nordeste', 'Oeste', 'Centro', 'Leste', 'Sudoeste', 'Sul', 'Sudeste',
+];
+
+export const sectorMetrics = [
+  { key: 'detections', label: 'Detecções' },
+  { key: 'active_days', label: 'Dias com detecções', unit: 'dias' },
+  { key: 'daily_average', label: 'Detecções por dia ativo' },
+  { key: 'frp_mw', label: 'FRP total', unit: 'MW' },
+  { key: 'frp_samples', label: 'Detecções com FRP válida' },
+  { key: 'mean_frp_mw', label: 'FRP média', unit: 'MW' },
+  { key: 'peak_frp_mw', label: 'FRP máxima', unit: 'MW' },
+  { key: 'p90_frp_mw', label: 'FRP · percentil 90', unit: 'MW' },
+  { key: 'night_pct', label: 'Detecções noturnas', unit: '%' },
+  { key: 'high_pct', label: 'Detecções de alta confiança', unit: '%' },
+  { key: 'sensors', label: 'Sensores distintos' },
+  { key: 'satellites', label: 'Satélites distintos' },
+];
+
 export const mapCopy = {
+  tileError: 'Alguns blocos do mapa não carregaram.',
+  tilesLoading: 'Carregando blocos…',
+  timelineRetry: 'Tentar carregar datas novamente',
+  timelineLoading: 'Consultando datas do timelapse…',
   "eyebrow": "PLATAFORMA DE MONITORAMENTO",
   "title": "Mapa-múndi de focos",
-  "description": "Explore os focos simulados na América do Sul. Os dados são carregados conforme os quadrantes visíveis.",
+  "description": "Explore os focos observados na América do Sul. Aproxime o mapa para separar pontos agrupados.",
   "view": "Enquadrar",
+  displayMode: 'Visualização',
+  heatMetric: 'Medida do calor',
+  heatMetrics: [
+    { id: 'detections', label: 'Todas as detecções', legend: 'Concentração de detecções' },
+    { id: 'frp', label: 'Potência radiativa (FRP)', legend: 'Concentração de FRP acumulada' },
+    { id: 'night', label: 'Detecções noturnas', legend: 'Concentração de detecções noturnas' },
+    { id: 'high', label: 'Detecções de alta confiança', legend: 'Concentração de detecções de alta confiança' },
+  ],
+  modes: [
+    { id: 'cluster', label: 'Grupos' },
+    { id: 'pixel', label: 'Pixels' },
+    { id: 'circle', label: 'Círculos' },
+    { id: 'heat', label: 'Mapa de calor' },
+  ],
+  period: 'Período das detecções',
+  from: 'De',
+  until: 'Até',
+  applyPeriod: 'Aplicar período',
+  timeline: 'Timelapse de focos',
+  timelineStep: 'Intervalo',
+  timelineSteps: [
+    { id: 'month', label: 'Mensal' },
+    { id: 'week', label: 'Semanal' },
+    { id: 'day', label: 'Diário' },
+  ],
+  pauseTimeline: 'Pausar',
+  playTimeline: 'Reproduzir',
+  exitTimeline: 'Mostrar período completo',
+  timelineReady: 'Período completo',
+  timelinePosition: 'Posição no timelapse',
+  heatTotal: total => total.toLocaleString('pt-BR') + ' detecções no recorte',
   "world": "Visão mundial",
   countries: 'Países da demonstração',
-  "sample": "Dados simulados",
+  "sample": "Dados observados · 2025",
   "google": "Mapa-múndi interativo do Google",
   "loading": "Carregando focos…",
   "error": "Falha ao carregar os focos deste recorte.",
   "retry": "Tentar novamente",
   "fallback": "Google Maps indisponível. Exibindo a cartografia local.",
-  points: count => count + (count === 1 ? " foco visível" : " focos visíveis"),
 };
 
 export const loginCopy = {
   "eyebrow": "ACESSO DEMONSTRATIVO",
   "title": "Login",
-  "description": "Use a conta de demonstração para explorar os focos de calor na América do Sul. A sessão é mantida nesta aba.",
+  "description": "Use a conta de demonstração para explorar os focos de calor na América do Sul. A sessão é mantida neste navegador.",
   "account": "Conta demonstração",
   "email": "analista@previa.example",
   "action": "Entrar com conta demo"
@@ -39,7 +92,7 @@ export const loginCopy = {
 
 export const footerCopy = {
   "scope": "Análise de focos de calor na América do Sul.",
-  "sample": "Projeto demonstrativo com dados simulados.",
+  "sample": "A plataforma consulta dados históricos de satélite.",
   "explore": "Explore a prevIA",
   "impacts": "Impactos das queimadas",
   "features": "Recursos de análise",

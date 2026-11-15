@@ -51,3 +51,29 @@
 
 .chart { display: block; width: calc(100% - 36px); height: auto; margin-inline: 18px; }
 .chart text { font-size: 10px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+
+.data-control {
+  min-height: 42px;
+  max-width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--control-radius);
+  background-color: var(--background);
+  color: var(--text);
+  font: 600 .82rem var(--body);
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.data-control:hover { border-color: var(--accent); }
+.data-control:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.data-control:disabled { opacity: .65; cursor: default; }
+select.data-control {
+  appearance: none;
+  padding-inline-end: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%2378c850' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+select.data-control option { background-color: var(--background); color: var(--text); }
+input.data-control[type='date'] { min-width: 134px; font-variant-numeric: tabular-nums; }
+input.data-control[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .85; padding: 3px; }

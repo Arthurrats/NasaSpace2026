@@ -18,7 +18,8 @@ export const regions = {
 
 export const hotspots = [...nw, ...ne, ...sw, ...se];
 
-export const regionalActivity = Object.values(countries).map(({ name, total }) => ({
+export const regionalActivity = Object.entries(countries).map(([id, { name, total }]) => ({
+  id,
   label: name,
   value: total,
 }));
@@ -31,9 +32,7 @@ export const metrics = [
   { id: 'critical', label: 'Alta intensidade', value: '216', detail: 'Focos no período' },
 ];
 
-export const dailyActivity = [
-  { label: 'Seg', value: 92 }, { label: 'Ter', value: 149 },
-  { label: 'Qua', value: 137 }, { label: 'Qui', value: 212 },
-  { label: 'Sex', value: 183 }, { label: 'Sáb', value: 268 },
-  { label: 'Dom', value: 243 },
-];
+export const dailyActivity = Array.from({ length: 90 }, (_, index) => ({
+  label: index % 7 === 0 ? 'Seg' : index % 7 === 6 ? 'Dom' : 'D' + (index + 1),
+  value: [92, 149, 137, 212, 183, 268, 243][index % 7],
+}));

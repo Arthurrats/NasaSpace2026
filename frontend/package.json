@@ -3,18 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": "^20.19.0 || >=22.12.0" },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource/barlow-condensed": "^5.2.0",
     "@fontsource-variable/inter": "^5.2.0",
+    "@fontsource/barlow-condensed": "^5.2.0",
     "@lucide/svelte": "^1.0.0",
     "d3-geo": "^3.1.1",
     "svelte": "^5.0.0",
+    "three": "^0.187.0",
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2"
   },
