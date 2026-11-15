@@ -4,7 +4,7 @@ O `compose.yaml` usa Docker Compose Watch para reconstruir apenas o serviço que
 
 ## Iniciar em modo de desenvolvimento
 
-Na raiz do repositório, execute:
+Na raiz do repositório, execute o comando de desenvolvimento.
 
 ```powershell
 docker compose up --build --watch
@@ -14,15 +14,25 @@ Deixe esse comando rodando enquanto edita o projeto. Ao salvar um arquivo em `fr
 
 Para parar, pressione `Ctrl+C`.
 
+## Execução em segundo plano
+
+```powershell
+docker compose up --build -d --wait
+docker compose ps
+docker compose logs --tail 100 frontend backend redis
+```
+
+Abra o frontend pela porta `PORT_FRONTEND`, com padrão 8080. O endpoint `/api/health` nessa mesma porta verifica o caminho Nginx → Flask. A porta padrão de acesso direto ao Flask é 5000. Os dois serviços são publicados em `127.0.0.1`. O Redis usa a rede interna e pode ser verificado com `docker compose exec redis redis-cli ping`.
+
 ## O que dispara atualização
 
-- Alterações em qualquer arquivo dentro de `frontend/` reconstruem o frontend.
-- Alterações em qualquer arquivo dentro de `backend/` reconstruem o backend.
-- Alterações em `.env`, `compose.yaml` ou nos dados Parquet exigem reiniciar o Compose para aplicar a nova configuração.
+- Alterações em `frontend/` ou `backend/` reconstruem o serviço correspondente, respeitando os arquivos excluídos em `.dockerignore`.
+- Alterações em `.env` ou `compose.yaml` requerem reaplicar o Compose. A chave e o ID do Google Maps são argumentos de build do frontend. Use `docker compose up --build -d --wait` para reaplicar a configuração.
+- A substituição de um Parquet no diretório já montado aparece na próxima consulta. Prefira preparar o arquivo completo e fazer uma troca atômica. Mudar o caminho em `PREVIA_DATA_HOST_DIR` requer reaplicar o Compose.
 - Dependências e conteúdo são copiados em etapas separadas nos Dockerfiles, permitindo ao BuildKit reutilizar camadas de dependências quando só o código muda.
 
-O Compose atualiza e remove a imagem antiga sem uso depois do rebuild. A imagem atualmente usada pelo container não é apagada.
+O Compose recria o serviço com a nova imagem. A sessão demonstrativa pode pedir novo login depois de uma recriação do backend. Se `/api/health` responder, mas as consultas aos dados retornarem `503`, confira o bind mount, os nomes dos Parquet e os logs de `backend`. A API continua consultando Parquet quando o Redis está indisponível.
 
 ## Compatibilidade
 
-O recurso `develop.watch` requer Docker Compose 2.22.0 ou posterior. A versão disponível neste projeto (5.5.1) já é compatível.
+Confira `docker compose version` e `docker compose up --help` para verificar se a instalação oferece `--watch`.

@@ -92,7 +92,7 @@ Com o acervo atual, o Previsor usa 2025 e projeta os primeiros 14 dias e o ciclo
 | `frontend/` | Svelte 5, Vite e Three.js. Interface, estados de tela, projeção cartográfica, controles, exibição de mapas, gráficos e fila de requisições. Os textos ficam principalmente em `frontend/src/content/`. |
 | `backend/app/` | Flask, Pandas, NumPy, PyArrow e Pillow. Validação, leitura dos Parquet, filtros, estatísticas, séries, setores, rankings, calendário, projeções e imagens dos blocos. |
 | `dados/parquet/` | Partições por sensor, ano e país. O backend monta esse diretório como somente leitura no Docker. |
-| `docs/` | [Contrato HTTP da API](docs/API.md), [guia de design](docs/DESIGN.md), [Docker Compose Watch](docs/DOCKER.md) e material sobre o modelo sazonal. |
+| `docs/` | [Contrato HTTP da API](docs/API.md), [guia de design](docs/DESIGN.md), [Docker Compose Watch](docs/DOCKER.md) e [metodologia dos dados e projeções](docs/METODOLOGIA.md). |
 | `research/` | Ambiente independente para experimentos em notebooks. [Guia de pesquisa](research/README.md) |
 
 Os países do acervo são Argentina, Bolívia, Brasil, Chile, Colômbia, Equador, Guiana, Paraguai, Peru, Suriname, Uruguai e Venezuela. O identificador do país vem do nome da partição. Os mapas posicionam cada detecção pela latitude e longitude informadas no registro. O Calendário e o Previsor descobrem anos adicionais quando encontram as partições da combinação de país e sensor, seguindo os nomes abaixo. O Dashboard, o Mapa e o Timelapse exibem o período de 2025 na interface atual.

@@ -53,10 +53,10 @@ Lista os países que possuem arquivos de dados.
 Resposta `200`:
 
 ```json
-{"countries":[{"id":"argentina","name":"Argentina"},{"id":"brasil","name":"Brazil"}]}
+{"countries":[{"id":"argentina","name":"Argentina","iso3":"ARG"},{"id":"brasil","name":"Brazil","iso3":"BRA"}]}
 ```
 
-A lista completa inclui Argentina, Bolívia, Brasil, Chile, Colômbia, Equador, Guiana, Paraguai, Peru, Suriname, Uruguai e Venezuela.
+O exemplo foi abreviado. A lista completa inclui Argentina, Bolívia, Brasil, Chile, Colômbia, Equador, Guiana, Paraguai, Peru, Suriname, Uruguai e Venezuela.
 
 ### `GET /api/demo-session`, `POST /api/demo-session` e `DELETE /api/demo-session`
 
@@ -142,7 +142,7 @@ Fornece Calendário e Previsor. Aceita `country`, `sensor`, `bbox` sem cruzament
 | `forecast` | `training_days`, `evaluation_windows`, `mae` e estimativas diárias com `date`, `estimate`, `lower` e `upper`. Nulo para recorte sem detecções. |
 | `seasonal` | `year`, `reference_year`, `method=seasonal_naive` e meses com `estimate`, `reference_start_date` e `reference_end_date`. |
 
-Veja a metodologia e os limites no [README](../README.md#calendário-de-atividade).
+Veja os cálculos, a cobertura e a relação com a proposta original na [metodologia da prevIA](METODOLOGIA.md).
 
 ### `GET /api/summary`
 
