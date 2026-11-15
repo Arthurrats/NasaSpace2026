@@ -1,4 +1,5 @@
 <script>
+  import { previewCopy as copy } from '../../../content/platform.js';
   import { Globe } from '@lucide/svelte';
   import { hotspots, regionalActivity } from '../data/demo.js';
   import FireMap from './FireMap.svelte';
@@ -7,20 +8,19 @@
 
 <figure class="card analysis-map" aria-labelledby="preview-map-title">
   <figcaption>
-    <span id="preview-map-title"><Globe size={19} aria-hidden="true" /> Mapa global de focos</span>
-    <span class="demo-label">Dados simulados</span>
+    <span id="preview-map-title"><Globe size={19} aria-hidden="true" /> {copy.title}</span>
+    <span class="demo-label">{copy.sample}</span>
   </figcaption>
-  <FireMap id="landing-map" />
+  <FireMap region="world" id="landing-map" />
   <MapLegend />
   <dl class="map-summary">
-    <div><dt>Pontos de exemplo no mapa</dt><dd>{hotspots.length}</dd></div>
-    <div><dt>Regiões no comparativo</dt><dd>{regionalActivity.length}</dd></div>
+    <div><dt>{copy.points}</dt><dd>{hotspots.length}</dd></div>
+    <div><dt>{copy.countries}</dt><dd>{regionalActivity.length}</dd></div>
   </dl>
 </figure>
 
 <style>
   .analysis-map {
-    --map-land: color-mix(in srgb, var(--surface) 84%, var(--accent));
     margin: 0;
     overflow: hidden;
     border-color: var(--border-strong);

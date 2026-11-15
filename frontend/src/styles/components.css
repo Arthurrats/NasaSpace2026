@@ -14,8 +14,8 @@
 
 .button-outline { border: 1px solid var(--border-strong); }
 .button-outline:hover { background: var(--surface); border-color: var(--indicator); }
-.button-primary { min-height: 52px; padding-inline: 18px; background: var(--accent); color: var(--background); }
-.button-primary:hover { background: var(--indicator); }
+.button-primary { min-height: 52px; padding-inline: 18px; background: var(--accent); color: var(--on-accent); border: 0; }
+.button-primary:hover { background: var(--accent-hover); }
 
 .eyebrow {
   display: flex;

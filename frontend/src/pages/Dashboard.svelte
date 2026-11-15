@@ -1,26 +1,24 @@
 <script>
-  import { Activity, Box, ChevronDown, Flame, Globe, MapPin, TrendingUp } from '@lucide/svelte';
-  import { metrics, regions, regionalActivity } from '../features/fire-monitoring/data/demo.js';
-  import FireMap from '../features/fire-monitoring/components/FireMap.svelte';
-  import MapLegend from '../features/fire-monitoring/components/MapLegend.svelte';
+  import { Activity, Box, Flame, Globe, TrendingUp } from '@lucide/svelte';
+  import { metrics, regionalActivity } from '../features/fire-monitoring/data/demo.js';
   import ActivityTrend from '../features/fire-monitoring/components/ActivityTrend.svelte';
   import RegionalDepth from '../features/fire-monitoring/components/RegionalDepth.svelte';
 
-  let region = $state('world');
+  import { dashboardCopy as copy } from '../content/platform.js';
   const metricIcons = { hotspots: Flame, regions: Globe, critical: Activity };
 </script>
 
 <div class="dashboard-content">
   <section class="dashboard-intro" aria-labelledby="dashboard-title">
     <div>
-      <p class="eyebrow"><span class="status-dot"></span> OBSERVATÓRIO DE INCÊNDIOS FLORESTAIS</p>
-      <h1 id="dashboard-title">Painel de focos<span>.</span></h1>
-      <p>Visualize a distribuição e a intensidade dos focos em um cenário de exemplo.</p>
+      <p class="eyebrow"><span class="status-dot"></span> {copy.label}</p>
+      <h1 id="dashboard-title">{copy.title}<span>.</span></h1>
+      <p>{copy.description}</p>
     </div>
-    <span class="demo-label">Dados simulados</span>
+    <span class="demo-label">{copy.sample}</span>
   </section>
 
-  <div class="metric-grid" aria-label="Indicadores de exemplo">
+  <div class="metric-grid" aria-label={copy.metrics}>
     {#each metrics as metric (metric.id)}
       {@const Icon = metricIcons[metric.id]}
       <section class="card metric" data-metric={metric.id}>
@@ -33,30 +31,9 @@
   </div>
 
   <div class="overview-grid">
-    <section class="card map-card" aria-labelledby="map-title">
-      <header class="card-header">
-        <div>
-          <h2 id="map-title"><Globe size={19} /> Mapa de focos</h2>
-          <p>Distribuição geográfica dos pontos de exemplo</p>
-        </div>
-        <div class="select-wrap">
-          <MapPin size={16} />
-          <label class="sr-only" for="region">Região do mapa</label>
-          <select id="region" bind:value={region}>
-            {#each Object.entries(regions) as [value, { name }]}
-              <option {value}>{name}</option>
-            {/each}
-          </select>
-          <ChevronDown size={15} />
-        </div>
-      </header>
-      <FireMap {region} id="dashboard-map" />
-      <MapLegend />
-    </section>
-
     <section class="card ranking-card" aria-labelledby="ranking-title">
       <header class="card-header">
-        <div><h2 id="ranking-title"><TrendingUp size={19} /> Focos por região</h2><p>Comparativo no período</p></div>
+        <div><h2 id="ranking-title"><TrendingUp size={19} /> {copy.ranking}</h2><p>{copy.rankingDetail}</p></div>
       </header>
       <ul class="ranking-list">
         {#each regionalActivity as { label, value }}
@@ -67,18 +44,15 @@
         {/each}
       </ul>
     </section>
-  </div>
-
-  <div class="chart-grid-layout">
     <section class="card chart-card" aria-labelledby="daily-title">
       <header class="card-header">
-        <div><h2 id="daily-title"><Activity size={19} /> Evolução diária</h2><p>Focos ao longo de uma semana de exemplo</p></div>
+        <div><h2 id="daily-title"><Activity size={19} /> {copy.daily}</h2><p>{copy.dailyDetail}</p></div>
       </header>
       <ActivityTrend />
     </section>
     <section class="card chart-card" aria-labelledby="regional-title">
       <header class="card-header">
-        <div><h2 id="regional-title"><Box size={19} /> Comparativo 3D</h2><p>Focos por região em perspectiva</p></div>
+        <div><h2 id="regional-title"><Box size={19} /> {copy.depth}</h2><p>{copy.depthDetail}</p></div>
       </header>
       <RegionalDepth />
     </section>
@@ -118,6 +92,8 @@
 
   .metric {
     --metric-color: var(--indicator);
+    background: var(--accent-surface);
+    border-color: var(--accent-border);
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
@@ -146,33 +122,16 @@
 
   .overview-grid {
     display: grid;
-    grid-template-columns: minmax(0, 2.05fr) minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 44px;
     gap: 16px;
   }
 
-  .map-card { overflow: hidden; }
   .card-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 18px; }
   .card-header h2 { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 670; }
   .card-header h2 :global(svg) { color: var(--indicator); }
   .card-header p { margin-top: 5px; color: var(--muted); font-size: .78rem; line-height: 1.45; }
 
-  .select-wrap { position: relative; display: flex; align-items: center; min-width: 0; max-width: 100%; color: var(--indicator); }
-  .select-wrap :global(svg) { position: absolute; pointer-events: none; }
-  .select-wrap :global(svg:first-child) { left: 9px; }
-  .select-wrap :global(svg:last-child) { right: 9px; }
-  .select-wrap select {
-    appearance: none;
-    max-width: 100%;
-    min-height: 44px;
-    padding-inline: 30px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--control-radius);
-    background: var(--background);
-    color: var(--text);
-    font-size: .78rem;
-  }
-
-  .select-wrap select:hover { border-color: var(--indicator); }
   .ranking-card { display: flex; flex-direction: column; }
   .ranking-list {
     flex: 1;
@@ -189,11 +148,10 @@
   .bar-track { height: 7px; overflow: hidden; border-radius: 6px; background: var(--background); }
   .bar-track div { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--indicator)); }
 
-  .chart-grid-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-block: 16px 44px; }
   .chart-card { padding-bottom: 14px; }
 
   @media (max-width: 760px) {
-    .overview-grid, .chart-grid-layout { grid-template-columns: 1fr; }
+    .overview-grid { grid-template-columns: 1fr; }
   }
 
   @media (max-width: 560px) {
@@ -201,6 +159,5 @@
     .metric-grid { grid-template-columns: 1fr; gap: 8px; }
     .metric { padding: 12px 14px; }
     .metric strong { font-size: 2.2rem; }
-    .chart-grid-layout { margin-bottom: 32px; }
-  }
+    }
 </style>

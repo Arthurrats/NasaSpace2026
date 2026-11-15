@@ -1,34 +1,22 @@
 <script>
-  import { Activity, ArrowDown, ArrowRight, Box, Flame, Globe, MapPin, Trees, Wind } from '@lucide/svelte';
+  import { Activity, ArrowDown, Box, Globe, MapPin } from '@lucide/svelte';
   import ActivityTrend from '../features/fire-monitoring/components/ActivityTrend.svelte';
   import MapPreview from '../features/fire-monitoring/components/MapPreview.svelte';
   import RegionalDepth from '../features/fire-monitoring/components/RegionalDepth.svelte';
-  import { regions } from '../features/fire-monitoring/data/demo.js';
+  import { countries } from '../features/fire-monitoring/data/demo.js';
   import BrandLockup from '../layouts/BrandLockup.svelte';
+  import TeamPhoto from './landing/TeamPhoto.svelte';
 
-  const impacts = [
-    { icon: Wind, title: 'Fumaça e saúde', detail: 'A fumaça das queimadas pode viajar longas distâncias, piorar a qualidade do ar e afetar a saúde de quem respira esse ar.' },
-    { icon: Trees, title: 'Perda de vegetação', detail: 'Incêndios florestais degradam a vegetação e alteram habitats, com consequências para a biodiversidade.' },
-    { icon: Flame, title: 'Focos espalhados no território', detail: 'Comparar onde e quando os focos aparecem ajuda a entender sua distribuição. Um mesmo incêndio pode gerar várias detecções por satélite.' },
-  ];
-
-  const team = [
-    { initials: 'AR', name: 'Arthur Rats' },
-    { initials: 'RR', name: 'RaphaelRates' },
-    { initials: 'GP', name: 'Guilherme Pinheiro' },
-    { initials: 'VH', name: 'Victor Hugo' },
-    { initials: 'JS', name: 'José Sergio' },
-  ];
+  import { groupPhoto, impacts, landingCopy as copy, team } from '../content/landing.js';
 </script>
 
 <section id="solucao" class="hero page-section" aria-labelledby="hero-title" tabindex="-1">
   <div class="hero-copy">
     <div class="hero-brand"><BrandLockup /></div>
-    <h1 id="hero-title">Queimadas <em>em análise.</em></h1>
-    <p>A prevIA reúne focos de calor em um mapa-múndi e mostra como eles se distribuem entre regiões e ao longo do tempo.</p>
+    <h1 id="hero-title">{copy.heroTitle} <em>{copy.heroHighlight}</em></h1>
+    <p>{copy.heroDescription}</p>
     <div class="hero-actions">
-      <a href="#/painel" class="button button-primary">Explorar painel <ArrowRight size={18} aria-hidden="true" /></a>
-      <a href="#recursos" class="section-link">Ver recursos <ArrowDown size={16} aria-hidden="true" /></a>
+      <a href="#recursos" class="button button-primary">{copy.heroAction} <ArrowDown size={17} aria-hidden="true" /></a>
     </div>
   </div>
 
@@ -37,8 +25,8 @@
 
 <section id="problema" class="problem page-section" aria-labelledby="problem-title" tabindex="-1">
   <div class="section-heading">
-    <p class="eyebrow">O PROBLEMA</p>
-    <h2 id="problem-title">Os impactos das queimadas.</h2>
+    <p class="eyebrow">{copy.problemLabel}</p>
+    <h2 id="problem-title">{copy.problemTitle}</h2>
   </div>
   <div class="impact-grid">
     {#each impacts as { icon: Icon, title, detail }}
@@ -50,44 +38,41 @@
     {/each}
   </div>
   <p class="references">
-    <a href="https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/queimadas-e-incencios-florestais-2a-edicao.pdf">Ministério da Saúde</a>
+    <a href="https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia-ambiental/queimadas-e-incencios-florestais-2a-edicao.pdf">{copy.healthSource}</a>
     <span aria-hidden="true">·</span>
-    <a href="https://www.gov.br/ibama/pt-br/servicos/consultas/incendios-florestais/monitoramento-de-focos-de-queimadas-em-imagens-de-satelites">Ibama</a>
+    <a href="https://www.gov.br/ibama/pt-br/servicos/consultas/incendios-florestais/monitoramento-de-focos-de-queimadas-em-imagens-de-satelites">{copy.ibamaSource}</a>
   </p>
 </section>
 
 <section id="recursos" class="features page-section" aria-labelledby="features-title" tabindex="-1">
-  <div class="section-heading features-heading">
-    <div>
-      <p class="eyebrow">RECURSOS</p>
-      <h2 id="features-title">O que você pode analisar.</h2>
-    </div>
-    <a href="#/painel" class="button button-outline">Abrir painel <ArrowRight size={17} aria-hidden="true" /></a>
+  <div class="section-heading">
+    <p class="eyebrow">{copy.featuresLabel}</p>
+    <h2 id="features-title">{copy.featuresTitle}</h2>
   </div>
 
   <div class="feature-grid">
     <article class="card feature">
       <div class="feature-copy">
-        <h3><Globe size={20} aria-hidden="true" /> Mapa com filtro regional</h3>
-        <p>Explore a distribuição dos focos por intensidade e alterne entre a visão mundial e os recortes do painel.</p>
+        <h3><Globe size={20} aria-hidden="true" /> {copy.filterTitle}</h3>
+        <p>{copy.filterDescription}</p>
       </div>
-      <ul class="region-list" aria-label="Recortes disponíveis no painel">
-        {#each Object.values(regions) as { name }}
+      <ul class="region-list" aria-label={copy.countryList}>
+        {#each Object.values(countries) as { name }}
           <li><MapPin size={14} aria-hidden="true" /> {name}</li>
         {/each}
       </ul>
     </article>
     <article class="card feature">
       <div class="feature-copy">
-        <h3><Activity size={20} aria-hidden="true" /> Evolução diária</h3>
-        <p>Acompanhe a quantidade de focos por dia e identifique picos na semana de exemplo.</p>
+        <h3><Activity size={20} aria-hidden="true" /> {copy.trendTitle}</h3>
+        <p>{copy.trendDescription}</p>
       </div>
       <div class="feature-chart"><ActivityTrend /></div>
     </article>
     <article class="card feature">
       <div class="feature-copy">
-        <h3><Box size={20} aria-hidden="true" /> Comparativo entre regiões</h3>
-        <p>Compare os totais de cada região no ranking e explore as diferenças no gráfico 3D.</p>
+        <h3><Box size={20} aria-hidden="true" /> {copy.compareTitle}</h3>
+        <p>{copy.compareDescription}</p>
       </div>
       <div class="feature-chart"><RegionalDepth /></div>
     </article>
@@ -96,24 +81,31 @@
 
 <section id="equipe" class="team page-section" aria-labelledby="team-title" tabindex="-1">
   <div class="section-heading">
-    <p class="eyebrow">EQUIPE</p>
-    <h2 id="team-title">Quem desenvolve a prevIA.</h2>
-    <p class="team-description">Programação, matemática aplicada e análise de dados.</p>
+    <p class="eyebrow">{copy.teamLabel}</p>
+    <h2 id="team-title">{copy.teamTitle}</h2>
+    <p class="team-description">{copy.teamDescription}</p>
   </div>
-  <ul class="team-list" aria-label="Equipe de desenvolvimento">
-    {#each team as { initials, name } (name)}
-      <li><span class="initials" aria-hidden="true">{initials}</span><strong>{name}</strong></li>
+  <TeamPhoto src={groupPhoto} group />
+  <ul class="team-list" aria-label={copy.teamList}>
+    {#each team as { initials, name, photo } (name)}
+      <li><TeamPhoto src={photo} {name} {initials} /><strong>{name}</strong></li>
     {/each}
   </ul>
 </section>
 
 <style>
-  .page-section { padding: clamp(42px, 6vw, 90px) var(--page-inset); }
+  .page-section {
+    display: grid;
+    align-content: center;
+    min-block-size: min(76svh, 820px);
+    padding: clamp(42px, 6vw, 90px) var(--page-inset);
+  }
   .page-section:focus { outline: none; }
 
   .hero {
     display: grid;
     grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    min-block-size: calc(100svh - var(--header-height));
     align-items: center;
     gap: clamp(24px, 4.5vw, 72px);
     background: radial-gradient(ellipse at 88% 40%, var(--surface), var(--background) 67%);
@@ -130,9 +122,7 @@
   .hero h1 { margin-block: 15px 22px; font-size: clamp(3.15rem, 7vw, 7.7rem); line-height: .9; }
   .hero h1 em { display: block; color: var(--accent); font-style: normal; }
   .hero-copy > p { max-width: 38ch; color: var(--muted); font-size: clamp(.95rem, 1.35vw, 1.125rem); line-height: 1.65; }
-  .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; margin-top: 28px; }
-  .section-link { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; color: var(--indicator); font-size: .88rem; font-weight: 650; }
-  .section-link:hover { text-decoration: underline; }
+  .hero-actions { margin-top: 28px; }
 
   .problem, .team {
     border-block: 1px solid var(--border);
@@ -156,9 +146,8 @@
   .references a { text-decoration: underline; text-underline-offset: 3px; }
   .references a:hover { color: var(--text); }
 
-  .features-heading { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
   .feature-grid { gap: 16px; }
-  .feature { display: flex; flex-direction: column; padding: 18px 0; }
+  .feature { display: flex; flex-direction: column; padding: 18px 0; background: var(--accent-surface); border-color: var(--accent-border); }
   .feature-copy { padding-inline: 18px; }
   .feature h3 { display: flex; align-items: center; gap: 8px; margin-top: 0; }
   .feature h3 :global(svg), .region-list :global(svg) { color: var(--indicator); }
@@ -196,11 +185,7 @@
   }
 
   .team-list li {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
+    overflow: hidden;
     border: 1px solid var(--border);
     border-radius: var(--card-radius);
     background: var(--background);
@@ -208,16 +193,32 @@
     overflow-wrap: anywhere;
   }
 
-  .initials {
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: var(--surface);
-    color: var(--indicator);
-    font-size: .78rem;
-    font-weight: 700;
+  .team-list strong { display: block; padding: 12px; }
+
+  @keyframes enter-section {
+    from { opacity: .68; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .section-heading, .impact, .feature, .team-list li {
+        animation: enter-section linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+      }
+
+      .hero :global(.analysis-map) {
+        animation: map-scroll linear both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 100%;
+      }
+    }
+  }
+
+  @keyframes map-scroll {
+    from { transform: translateY(0); }
+    to { transform: translateY(22px); }
   }
 
   @media (max-width: 1050px) {

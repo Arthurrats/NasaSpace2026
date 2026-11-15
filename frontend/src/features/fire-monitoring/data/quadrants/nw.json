@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Colômbia",
+    "country": "colombia",
+    "coordinates": [
+      -73,
+      6
+    ],
+    "intensity": "low"
+  }
+]

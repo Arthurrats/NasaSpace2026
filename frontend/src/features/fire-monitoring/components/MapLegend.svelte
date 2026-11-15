@@ -26,5 +26,11 @@
   }
 
   .legend-key { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
-  .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--intensity-color); }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--map-marker-outline);
+    border-radius: 50%;
+    background: var(--intensity-color);
+  }
 </style>

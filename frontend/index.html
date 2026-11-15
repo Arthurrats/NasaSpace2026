@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101B19" />
+    <script>
+      try {
+        if (localStorage.getItem('previa:theme') === 'light') {
+          document.documentElement.dataset.theme = 'light';
+          document.querySelector('meta[name="theme-color"]').content = '#F2F5F0';
+        }
+      } catch {}
+    </script>
     <meta name="description" content="Explore focos de calor em um mapa-múndi e compare regiões e tendências com o painel demonstrativo da prevIA." />
     <link rel="icon" type="image/png" href="%BASE_URL%previa-icon.png" />
     <title>prevIA — Monitoramento e análise de queimadas</title>

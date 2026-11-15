@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   --background: #101B19;
   --surface: #1D302A;
   --accent: #78C850;
@@ -7,18 +8,53 @@
   --critical: #E84B32;
   --text: #F2F5F0;
   --muted: #9BAAA2;
+  --on-accent: #101B19;
+  --accent-hover: #B6E36B;
+  --map-water: #101B19;
+  --map-glow: #243C33;
+  --map-land: #355642;
+  --map-stroke: #607967;
+  --map-marker-outline: #101B19;
+  --map-low: #B6E36B;
+  --map-medium: #FF8A32;
+  --map-high: #FF6148;
 
   --surface-raised: color-mix(in srgb, var(--surface) 88%, var(--muted));
   --border: color-mix(in srgb, var(--surface) 83%, var(--muted));
   --border-strong: color-mix(in srgb, var(--surface) 57%, var(--muted));
+  --accent-surface: color-mix(in srgb, var(--surface) 91%, var(--accent));
+  --accent-border: color-mix(in srgb, var(--border-strong) 75%, var(--accent));
 
   --heading: 'Barlow Condensed', Impact, sans-serif;
   --body: 'Inter Variable', Inter, sans-serif;
   --card-radius: 15px;
   --control-radius: 8px;
   --page-inset: clamp(16px, 4vw, 64px);
+  --header-height: 73px;
 }
 
-.intensity-high { --intensity-color: var(--critical); }
-.intensity-medium { --intensity-color: var(--heat); }
-.intensity-low { --intensity-color: var(--indicator); }
+:root[data-theme='light'] {
+  color-scheme: light;
+  --background: #F2F5F0;
+  --surface: #E3EBE2;
+  --text: #101B19;
+  --muted: #4A6057;
+  --accent: #287044;
+  --accent-hover: #1D5635;
+  --on-accent: #F2F5F0;
+  --indicator: #376744;
+  --heat: #A9430A;
+  --critical: #AA3022;
+  --map-water: #E4EDE7;
+  --map-glow: #F2F5F0;
+  --map-land: #BBD4BC;
+  --map-stroke: #728E7B;
+}
+
+.intensity-high { --intensity-color: var(--map-high); }
+.intensity-medium { --intensity-color: var(--map-medium); }
+.intensity-low { --intensity-color: var(--map-low); }
+
+@media (max-width: 920px) {
+  :root { --header-height: 65px; }
+}

@@ -1,11 +1,11 @@
 <script>
-  import { Activity, ArrowUpRight, Flame, Globe, House, LayoutDashboard, Mail, Menu, Users, X } from '@lucide/svelte';
+  import { Activity, Flame, Globe, House, LayoutDashboard, LogIn, LogOut, Mail, Menu, Moon, Sun, Users, X } from '@lucide/svelte';
   import BrandLockup from './BrandLockup.svelte';
 
-  let { currentPage } = $props();
+  let { currentPage, onLogout } = $props();
   let navigation;
+  let theme = $state(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 
-  const dashboard = { href: '#/painel', title: 'Painel', icon: LayoutDashboard };
   const landingSections = [
     { href: '#solucao', title: 'Solução', icon: Globe },
     { href: '#problema', title: 'O problema', icon: Flame },
@@ -13,15 +13,24 @@
     { href: '#equipe', title: 'Equipe', icon: Users },
     { href: '#contato', title: 'Contato', icon: Mail },
   ];
-  const dashboardPages = [{ href: '#/', title: 'Início', icon: House }, dashboard];
   const isLanding = $derived(currentPage === '#/');
-  const pages = $derived(isLanding ? landingSections : dashboardPages);
-  const mobilePages = $derived(isLanding ? [...landingSections, dashboard] : dashboardPages);
+  const isPlatform = $derived(currentPage === '#/painel' || currentPage === '#/mapa');
+  const home = { href: '#solucao', title: 'Início', icon: House };
+  const platformPages = [home, { href: '#/painel', title: 'Dashboard', icon: LayoutDashboard }, { href: '#/mapa', title: 'Mapa', icon: Globe }];
+  const pages = $derived(isLanding ? landingSections : isPlatform ? platformPages : [home]);
+  const themeAction = $derived(theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro');
+
+  function toggleTheme() {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+    try { localStorage.setItem('previa:theme', theme); } catch {}
+  }
 </script>
 
 <header>
   <div class="header-inner">
-    <a class="brand" href="#/" aria-label="prevIA, início"><BrandLockup /></a>
+    <a class="brand" href="#solucao" aria-label="prevIA, início"><BrandLockup /></a>
 
     <nav class="desktop-navigation" aria-label="Navegação principal">
       {#each pages as { href, title }}
@@ -30,10 +39,19 @@
     </nav>
 
     <div class="header-actions">
-      {#if isLanding}
-        <a class="button button-outline desktop-cta" href={dashboard.href}>Abrir painel <ArrowUpRight size={16} /></a>
+      <button type="button" class="icon-button" aria-label={themeAction} title={themeAction} onclick={toggleTheme}>
+        {#if theme === 'dark'}<Sun size={20} aria-hidden="true" />{:else}<Moon size={20} aria-hidden="true" />{/if}
+      </button>
+      {#if isPlatform}
+        <button type="button" class="button button-outline account-button" aria-label="Sair da sessão" onclick={onLogout}>
+          <LogOut size={18} aria-hidden="true" /><span>Sair</span>
+        </button>
+      {:else if currentPage !== '#/login'}
+        <a class="button button-outline account-button" href="#/login" aria-label="Login">
+          <LogIn size={18} aria-hidden="true" /><span>Login</span>
+        </a>
       {/if}
-      <button class="icon-button mobile-menu" aria-label="Abrir menu" aria-haspopup="dialog" onclick={() => navigation.showModal()}>
+      <button type="button" class="icon-button mobile-menu" aria-label="Abrir menu" aria-haspopup="dialog" onclick={() => navigation.showModal()}>
         <Menu size={23} />
       </button>
     </div>
@@ -46,7 +64,7 @@
     <button class="icon-button" aria-label="Fechar menu" onclick={() => navigation.close()}><X size={22} /></button>
   </div>
   <nav aria-label="Navegação móvel">
-    {#each mobilePages as { href, title, icon: Icon }}
+    {#each pages as { href, title, icon: Icon }}
       <a {href} aria-current={currentPage === href ? 'page' : undefined} onclick={() => navigation.close()}>
         <Icon size={18} /> {title}
       </a>
@@ -55,13 +73,19 @@
 </dialog>
 
 <style>
-  header { border-bottom: 1px solid var(--border); }
+  header {
+    position: sticky;
+    z-index: 20;
+    top: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--background);
+  }
 
   .header-inner {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    min-height: 72px;
+    min-height: calc(var(--header-height) - 1px);
     gap: 20px;
     padding-inline: var(--page-inset);
   }
@@ -71,7 +95,30 @@
     width: fit-content;
   }
 
-  .header-actions { justify-self: end; }
+  .header-actions { display: flex; align-items: center; justify-self: end; gap: 8px; }
+  .account-button { gap: 8px; background: transparent; color: var(--text); }
+  .account-button :global(svg) { color: var(--accent); }
+
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      header::after {
+        content: '';
+        position: absolute;
+        inset: auto 0 -1px;
+        height: 2px;
+        background: var(--accent);
+        pointer-events: none;
+        transform-origin: left;
+        animation: reading-progress linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+
+  @keyframes reading-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
 
   .desktop-navigation { display: flex; align-items: stretch; gap: 32px; align-self: stretch; }
   .desktop-navigation a {
@@ -139,8 +186,16 @@
   .mobile-drawer nav a[aria-current] :global(svg) { color: var(--indicator); }
 
   @media (max-width: 920px) {
-    .header-inner { min-height: 64px; grid-template-columns: 1fr auto; }
-    .desktop-navigation, .desktop-cta { display: none; }
+    .header-inner { grid-template-columns: 1fr auto; gap: 8px; }
+    .desktop-navigation { display: none; }
     .mobile-menu { display: grid; }
+  }
+
+  @media (max-width: 380px) {
+    .header-inner { padding-inline: 12px; }
+    .header-actions { gap: 6px; }
+    .brand { --brand-size: 1.3rem; }
+    .account-button { width: 44px; padding-inline: 0; }
+    .account-button span { display: none; }
   }
 </style>

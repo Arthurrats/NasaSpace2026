@@ -10,9 +10,9 @@ Base para um observatório de incêndios florestais com landing page, painel dem
 | `frontend/` | Interface Svelte e Vite, com início em `/#/` e painel em `/#/painel`. |
 | `backend/` | Aplicação Flask com `GET /api/health` para verificar o serviço. |
 | `research/` | Ambiente para experimentos e notebooks, com dependências e venv próprias. |
-| `docs/` | [Guia da estrutura, do layout e da identidade visual](docs/README.md). |
+| `docs/` | [Guia da estrutura, do layout e da identidade visual](docs/DESIGN.md). |
 
-O painel usa dados fictícios. A opção **Minha região** usa o Brasil como recorte de exemplo. A seleção altera a área visível do mapa. Os três módulos podem rodar separadamente.
+O painel usa dados fictícios de cinco países da América do Sul. Entre pelo botão **Login** no cabeçalho e use a conta de demonstração. No painel, o seletor muda o recorte do mapa. Os três módulos podem rodar separadamente.
 
 ## Docker Compose
 

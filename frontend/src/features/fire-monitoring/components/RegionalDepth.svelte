@@ -6,7 +6,6 @@
   const gridTop = 157;
   const barDepth = 13;
   const barWidth = 29;
-  const shortLabels = ['A. Sul', 'África', 'Ásia', 'Oceania', 'Europa'];
 
   function barFaces(value, index) {
     const left = 77 + index * 67;
@@ -20,7 +19,7 @@
 </script>
 
 <svg class="chart depth-chart" viewBox="0 0 438 191" role="img" aria-labelledby="depth-title depth-desc">
-  <title id="depth-title">Comparação de focos por região em 3D</title>
+  <title id="depth-title">Comparação de focos por país em 3D</title>
   <desc id="depth-desc">{regionalActivity.map(({ label, value }) => label + ': ' + value).join(', ')}. Dados de exemplo.</desc>
   <path d="M48 168 L88 143 H418 L379 168 Z" fill="var(--surface-raised)" stroke="var(--border-strong)" />
   <path d="M48 168 L88 143 V23" fill="none" stroke="var(--border-strong)" />
@@ -37,7 +36,7 @@
       <polygon points={bar.side} class="bar-side" />
       <polygon points={bar.upper} fill="var(--indicator)" />
       <text x={bar.left + barWidth / 2} y={bar.top - 15} text-anchor="middle" class="value">{value}</text>
-      <text x={bar.left + barWidth / 2} y="184" text-anchor="middle">{shortLabels[index]}</text>
+      <text x={bar.left + barWidth / 2} y="184" text-anchor="middle">{label}</text>
     </g>
   {/each}
 </svg>

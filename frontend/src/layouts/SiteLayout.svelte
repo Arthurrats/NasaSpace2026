@@ -2,7 +2,7 @@
   import SiteFooter from './SiteFooter.svelte';
   import SiteHeader from './SiteHeader.svelte';
 
-  let { currentPage, children } = $props();
+  let { currentPage, onLogout, children } = $props();
   let content;
 
   function skipToContent(event) {
@@ -13,7 +13,7 @@
 
 <div class="site-layout">
   <a class="skip-link" href="#conteudo" onclick={skipToContent}>Pular para o conteúdo</a>
-  <SiteHeader {currentPage} />
+  <SiteHeader {currentPage} {onLogout} />
 
   <main id="conteudo" tabindex="-1" bind:this={content}>
     {@render children()}
@@ -34,7 +34,7 @@
 
   .skip-link:focus {
     position: fixed;
-    z-index: 10;
+    z-index: 30;
     top: 12px;
     left: 12px;
     padding: 12px;

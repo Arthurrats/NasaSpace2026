@@ -1,0 +1,101 @@
+[
+  {
+    "name": "Acre",
+    "country": "brazil",
+    "coordinates": [
+      -68,
+      -10
+    ],
+    "intensity": "medium"
+  },
+  {
+    "name": "Pará",
+    "country": "brazil",
+    "coordinates": [
+      -53,
+      -5
+    ],
+    "intensity": "high"
+  },
+  {
+    "name": "Mato Grosso",
+    "country": "brazil",
+    "coordinates": [
+      -57,
+      -13
+    ],
+    "intensity": "high"
+  },
+  {
+    "name": "Tocantins",
+    "country": "brazil",
+    "coordinates": [
+      -48,
+      -11
+    ],
+    "intensity": "medium"
+  },
+  {
+    "name": "Mato Grosso do Sul",
+    "country": "brazil",
+    "coordinates": [
+      -55,
+      -20
+    ],
+    "intensity": "medium"
+  },
+  {
+    "name": "Goiás",
+    "country": "brazil",
+    "coordinates": [
+      -52,
+      -16
+    ],
+    "intensity": "low"
+  },
+  {
+    "name": "Bahia",
+    "country": "brazil",
+    "coordinates": [
+      -42,
+      -13
+    ],
+    "intensity": "high"
+  },
+  {
+    "name": "Paraná",
+    "country": "brazil",
+    "coordinates": [
+      -51,
+      -25
+    ],
+    "intensity": "low"
+  },
+  {
+    "name": "Bolívia",
+    "country": "bolivia",
+    "coordinates": [
+      -65,
+      -18
+    ],
+    "intensity": "medium"
+  },
+  {
+    "name": "Argentina",
+    "country": "argentina",
+    "coordinates": [
+      -63,
+      -32
+    ],
+    "intensity": "low"
+  },
+  {
+    "name": "Paraguai",
+    "country": "paraguay",
+    "coordinates": [
+      -59,
+      -22
+    ],
+    "intensity": "high"
+  }
+]
