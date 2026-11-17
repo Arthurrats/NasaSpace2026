@@ -46,11 +46,14 @@ def project_tile(longitude, latitude, zoom: int, column: int, row: int) -> tuple
     return x - column * TILE_SIZE, y - row * TILE_SIZE
 
 
-def encode_tile(image, scale=1):
+def encode_tile(image, scale=1, clip_pixels=None):
     origin = PAD * scale
     end = origin + TILE_SIZE * scale
     buffer = BytesIO()
-    image.crop((origin, origin, end, end)).save(buffer, format="PNG", compress_level=3)
+    image = image.crop((origin, origin, end, end))
+    if clip_pixels is not None:
+        image = clip_pixels(image)
+    image.save(buffer, format="PNG", compress_level=3)
     return buffer.getvalue()
 
 
@@ -63,7 +66,7 @@ def blur_heat(density, axis, radius):
     return np.moveaxis(average, -1, axis)
 
 
-def render_heat_tile(zoom, column, row, longitude, latitude, weight, metric, palette="default", days=365):
+def render_heat_tile(zoom, column, row, longitude, latitude, weight, metric, palette="default", days=365, clip_pixels=None):
     x, y = project_tile(longitude, latitude, zoom, column, row)
     side = TILE_SIZE + 2 * PAD
     cx = np.floor(x + PAD).astype(int)
@@ -86,10 +89,10 @@ def render_heat_tile(zoom, column, row, longitude, latitude, weight, metric, pal
     offsets, rgb = HEAT_PALETTES[palette]
     alpha = np.sqrt(relative) * 218
     channels = [np.interp(relative, offsets, channel) for channel in zip(*rgb)]
-    return encode_tile(Image.fromarray(np.stack([*channels, alpha], axis=-1).astype(np.uint8)))
+    return encode_tile(Image.fromarray(np.stack([*channels, alpha], axis=-1).astype(np.uint8)), clip_pixels=clip_pixels)
 
 
-def render_tile(mode: str, zoom: int, column: int, row: int, longitude, latitude, level) -> bytes:
+def render_tile(mode: str, zoom: int, column: int, row: int, longitude, latitude, level, clip_pixels=None) -> bytes:
     x, y = project_tile(longitude, latitude, zoom, column, row)
     side = (TILE_SIZE + 2 * PAD) * OVERSAMPLE
     image = Image.new("RGBA", (side, side))
@@ -105,7 +108,7 @@ def render_tile(mode: str, zoom: int, column: int, row: int, longitude, latitude
         for cell in cells:
             py, px = divmod(int(cell), side + 1)
             draw.ellipse((px - r, py - r, px + r - 1, py + r - 1), fill="#fee838e0")
-        return encode_tile(image, OVERSAMPLE)
+        return encode_tile(image, OVERSAMPLE, clip_pixels)
 
     level = np.asarray(level, dtype=np.int64)[valid]
     if mode != "cluster" and len(cx):
@@ -121,4 +124,4 @@ def render_tile(mode: str, zoom: int, column: int, row: int, longitude, latitude
                 draw.rectangle(box, fill=color)
             else:
                 draw.ellipse(box, fill=color, outline="#101b19", width=OVERSAMPLE)
-    return encode_tile(image, OVERSAMPLE)
+    return encode_tile(image, OVERSAMPLE, clip_pixels)

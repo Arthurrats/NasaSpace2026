@@ -5,3 +5,4 @@ numpy>=1.26,<3
 Pillow>=11,<13
 pyarrow>=18,<25
 redis>=5.2,<7
+shapely>=2.1,<3

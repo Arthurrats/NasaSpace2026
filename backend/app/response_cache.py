@@ -22,7 +22,7 @@ def file_revision(path: Path) -> tuple:
 @lru_cache(maxsize=1)
 def application_revision() -> str:
     root = Path(__file__).parent
-    source = b"".join(path.read_bytes() for path in sorted(root.glob("*.py")))
+    source = b"".join(path.read_bytes() for path in sorted(root.rglob("*.py")))
     return hashlib.sha256(source).hexdigest()
 
 

@@ -1,10 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from .analytics import valid_frp
+from .metrics import valid_frp
 
 
-ARCHIVE_YEAR = 2025
 SOUTH_AMERICA = (-84, -57, -31, 15)
 WEEK = 7
 TRAINING_DAYS = 28
