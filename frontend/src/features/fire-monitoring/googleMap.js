@@ -39,7 +39,9 @@ export async function createGoogleMap(element, key, onViewport, onError, onTileE
   };
   try {
     const google = await loadGoogle(key);
-    const [{ Map: GoogleMap }, { Size }] = await Promise.all([google.importLibrary('maps'), google.importLibrary('core')]);
+    const [{ Map: GoogleMap, Polyline }, { Size }, { AdvancedMarkerElement }] = await Promise.all([
+      google.importLibrary('maps'), google.importLibrary('core'), google.importLibrary('marker'),
+    ]);
     const map = new GoogleMap(element, {
       mapId: import.meta.env.VITE_GOOGLE_MAP_ID || 'DEMO_MAP_ID',
       center: { lat: -15, lng: -57 }, zoom: 3, minZoom: 2, maxZoom: 22, streetViewControl: false,
@@ -47,6 +49,47 @@ export async function createGoogleMap(element, key, onViewport, onError, onTileE
     });
     let tileKey;
     let clearTiles;
+    let territoryLines = [];
+    let marker;
+    let pickListener;
+    function showLocation(position, title) {
+      if (marker) marker.map = null;
+      marker = undefined;
+      if (!position) return;
+      const [lng, lat] = position;
+      const icon = document.createElement('img');
+      icon.src = '/previa-icon.png';
+      icon.alt = '';
+      icon.style.cssText = 'width:34px;height:34px;padding:5px;box-sizing:border-box;background:#101b19;border:2px solid #ffee78;border-radius:50%;';
+      marker = new AdvancedMarkerElement({ map, position: { lat, lng }, title, anchorTop: '-50%' });
+      marker.append(icon);
+    }
+    function setLocationPicker(pick) {
+      pickListener?.remove();
+      pickListener = undefined;
+      map.setOptions({ draggableCursor: pick ? 'crosshair' : null });
+      if (pick) {
+        pickListener = map.addListener('click', event => {
+          if (event.latLng) pick([event.latLng.lng(), event.latLng.lat()]);
+        });
+      }
+    }
+    function drawTerritory(outline) {
+      for (const line of territoryLines) line.setMap(null);
+      territoryLines = (outline?.coordinates ?? []).map(ring => new Polyline({
+        map,
+        path: ring.map(([lng, lat]) => ({ lng, lat })),
+        clickable: false,
+        strokeColor: '#101b19',
+        strokeWeight: 4,
+        strokeOpacity: 0.85,
+        icons: [{
+          icon: { path: 'M 0,-1 0,1', strokeColor: '#ffee78', strokeOpacity: 1, strokeWeight: 2.5, scale: 3 },
+          offset: '0',
+          repeat: '10px',
+        }],
+      }));
+    }
     function updateTiles(query, displayMode) {
       const signature = query ? displayMode + '?' + query : undefined;
       if (signature === tileKey) return;
@@ -93,19 +136,25 @@ export async function createGoogleMap(element, key, onViewport, onError, onTileE
         updateTiles(points.tileQuery, mode);
       },
       viewport,
-      fit(bounds) {
+      drawTerritory,
+      showLocation,
+      setLocationPicker,
+      fit(bounds, close = false) {
         if (!bounds) {
           map.setCenter({ lat: 0, lng: 0 });
           map.setZoom(2);
           return;
         }
         const [[west, south], [east, north]] = bounds;
-        map.fitBounds({ west, south, east, north });
+        map.fitBounds({ west, south, east, north }, close ? 10 : undefined);
       },
       destroy() {
         restoreAuthFailure();
         idle.remove();
         updateTiles();
+        drawTerritory();
+        showLocation();
+        setLocationPicker();
         element.replaceChildren();
       },
     };

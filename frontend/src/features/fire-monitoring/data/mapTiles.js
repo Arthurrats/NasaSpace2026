@@ -85,18 +85,23 @@ export function positionedTiles(bounds, project, mode, query) {
   const zoom = Math.max(0, Math.min(22, Math.round(Math.log2(project.scale() * 2 * Math.PI / TILE_SIZE))));
   const size = 2 ** zoom;
   const left = Math.max(0, Math.floor((west + 180) / 360 * size));
-  const right = Math.min(size - 1, Math.ceil((east + 180) / 360 * size) - 1);
+  const right = Math.min(size - 1, Math.ceil((east + 180) / 360 * size) - 1) + (east < west ? size : 0);
   const top = rowAt(north, size);
   const bottom = rowAt(south, size);
   const middleColumn = (left + right) / 2;
   const middleRow = (top + bottom) / 2;
+  const pixelsPerDegree = project.scale() * Math.PI / 180;
+  const tileWidth = 360 * pixelsPerDegree / size;
+  const [westEdge] = project([west, 0]);
   const tiles = [];
   for (let row = top; row <= bottom; row++) {
+    const [, y] = project([west, latitude(row, size)]);
+    const [, endY] = project([west, latitude(row + 1, size)]);
     for (let column = left; column <= right; column++) {
-      const [x, y] = project([longitude(column, size), latitude(row, size)]);
-      const [endX, endY] = project([longitude(column + 1, size), latitude(row + 1, size)]);
+      const x = westEdge + (longitude(column, size) - west) * pixelsPerDegree;
       const distance = Math.hypot(column - middleColumn, row - middleRow);
-      tiles.push({ x, y, width: endX - x, height: endY - y, url: tileUrl(mode, zoom, column, row, query), distance });
+      const url = tileUrl(mode, zoom, column, row, query);
+      tiles.push({ id: column + ':' + url, x, y, width: tileWidth, height: endY - y, url, distance });
     }
   }
   return tiles.sort((first, second) => first.distance - second.distance);

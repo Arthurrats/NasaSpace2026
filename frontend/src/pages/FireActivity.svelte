@@ -1,9 +1,10 @@
 <script>
   import { CalendarDays, ChevronLeft, ChevronRight, Flame, MapPin, Scan } from '@lucide/svelte';
+  import Skeleton from '../components/Skeleton.svelte';
   import ActivityTrend from '../features/fire-monitoring/components/ActivityTrend.svelte';
   import FireMap from '../features/fire-monitoring/components/FireMap.svelte';
   import MapLegend from '../features/fire-monitoring/components/MapLegend.svelte';
-  import { formatCount, formatMetric, formatDay, formatDate, fromDate, loadActivity, monthName } from '../features/fire-monitoring/data/activity.js';
+  import { activityQuery, formatCount, formatMetric, formatDay, formatDate, fromDate, monthName } from '../features/fire-monitoring/data/activity.js';
   import { regions } from '../features/fire-monitoring/data/demo.js';
   import { accessibleHeatStops } from '../features/fire-monitoring/mapLayer.js';
   import { activityCopy as copy, activityCountries } from '../content/fireActivity.js';
@@ -24,16 +25,17 @@
   let custom = $state(false);
   let filter = $state({ country: 'all', sensor: 'all', bounds: null });
   let areaError = $state(false);
-  let activity = $state();
   let month = $state(0);
   let selectedDate = $state('');
-  let loading = $state(true);
-  let error = $state(false);
   let mapAttempt = $state(0);
   let pendingTiles = $state(0);
   let mapError = $state(false);
   let drawing = $state(false);
 
+  const activityRequest = $derived(activityQuery(filter));
+  const activity = $derived($activityRequest.data);
+  const loading = $derived($activityRequest.status === 'loading');
+  const error = $derived($activityRequest.status === 'error');
   const activeMonth = $derived(month || activity?.months.find(item => item.critical)?.month || 1);
   const monthCode = $derived(String(activeMonth).padStart(2, '0'));
   const monthSummary = $derived(activity?.months[activeMonth - 1]);
@@ -77,7 +79,9 @@
     if (areaError) return;
     drawing = false;
     const year = filter.country === country && filter.sensor === sensor ? filter.year : undefined;
-    filter = { country, sensor, year, bounds: custom ? [[west, south], [east, north]] : null };
+    const next = { country, sensor, year, bounds: custom ? [[west, south], [east, north]] : null };
+    if (activityQuery(next).key === activityRequest.key) activityRequest.refresh();
+    else filter = next;
   }
 
   function selectArea(rectangle) {
@@ -111,19 +115,6 @@
   }
 
   $effect(() => {
-    const selection = filter;
-    const controller = new AbortController();
-    loading = true;
-    error = false;
-    activity = undefined;
-    loadActivity(selection, controller.signal)
-      .then(result => { if (!controller.signal.aborted) activity = result; })
-      .catch(() => { if (!controller.signal.aborted) error = true; })
-      .finally(() => { if (!controller.signal.aborted) loading = false; });
-    return () => controller.abort();
-  });
-
-  $effect(() => {
     void mapPoints;
     mapError = false;
   });
@@ -152,9 +143,11 @@
     <p aria-live="polite"><strong>{formatCount.format(mapTotal)}</strong> {isCalendar ? 'focos detectados (UTC)' : 'focos projetados · referência de ' + activity.seasonal.reference_year}
       {#if isCalendar} · {formatMetric.format(day.frp_mw)} MW de FRP acumulada{day.unusual ? ' · Acima do padrão' : ''}{/if}</p>
     {#if drawing}<p class="draw-hint" role="status">{copy.drawHint}</p>{/if}
-    <FireMap region="world" id="activity-map" bounds={drawing ? defaultBounds : bounds} points={mapPoints} mode={isCalendar ? 'heat' : 'dots'}
-      title={isCalendar ? 'Detecções do dia selecionado' : 'Distribuição sazonal de focos projetados'} onAreaSelect={drawing ? selectArea : undefined}
-      selectableBounds={defaultBounds} selectionBounds={filter.bounds} onTileError={() => { mapError = true; }} onTilePending={trackTile} />
+    <div aria-busy={pendingTiles > 0}>
+      <FireMap region="world" id="activity-map" bounds={drawing ? defaultBounds : bounds} points={mapPoints} mode={isCalendar ? 'heat' : 'dots'}
+        title={isCalendar ? 'Detecções do dia selecionado' : 'Distribuição sazonal de focos projetados'} onAreaSelect={drawing ? selectArea : undefined}
+        selectableBounds={defaultBounds} selectionBounds={filter.bounds} onTileError={() => { mapError = true; }} onTilePending={trackTile} />
+    </div>
     {#if filter.bounds}
       <div class="area-status"><span>Área delimitada</span><button type="button" class="clear-area" onclick={clearArea}>{copy.clearArea}</button></div>
     {/if}
@@ -199,16 +192,42 @@
   </form>
 
   {#if loading}
-    <p role="status" class="card panel">{copy.loading}</p>
+    <p role="status" class="sr-only">{copy.loading}</p>
+    {#if !isCalendar}
+      <div class="card panel" aria-hidden="true">
+        <Skeleton width="min(70%, 16rem)" height="1.4rem" />
+        <Skeleton height="clamp(245px, 30vw, 335px)" />
+      </div>
+    {/if}
+    <div class="card panel activity-panel" aria-hidden="true">
+      <Skeleton width="min(70%, 16rem)" height="1.4rem" />
+      <Skeleton width="14rem" height="42px" />
+      {#if isCalendar}
+        <div class="metrics">
+          {#each Array(4) as _}<Skeleton height="4.5rem" />{/each}
+        </div>
+        <div class="calendar-results">
+          <div class="day-panel">
+            <div class="day-grid">
+              {#each Array(35) as _}<Skeleton height="44px" />{/each}
+            </div>
+          </div>
+        </div>
+        <div class="history">
+          <Skeleton width="min(55%, 14rem)" />
+          <Skeleton height="clamp(140px, 20vw, 235px)" />
+        </div>
+      {/if}
+    </div>
   {:else if error}
-    <div class="card panel"><p role="alert">{copy.failure}</p><button type="button" class="button button-outline" onclick={() => { filter = { ...filter }; }}>Tentar novamente</button></div>
+    <div class="card panel"><p role="alert">{copy.failure}</p><button type="button" class="button button-outline" onclick={() => activityRequest.refresh()}>Tentar novamente</button></div>
   {:else if activity}
     {#if !isCalendar}
       <section class="card panel">
         <h2>{page.series}</h2>
         {#if activity.forecast}
           <div class="chart-key"><span class="observed">Observado</span><span class="projected">Projetado</span><span class="range">Faixa empírica</span></div>
-          <ActivityTrend data={series} forecastFrom={observedDays} title={page.series} wide />
+          <ActivityTrend roomy data={series} forecastFrom={observedDays} title={page.series} wide />
           <p>Erro absoluto médio retrospectivo de <strong>{formatMetric.format(activity.forecast.mae)} focos/dia</strong> em {activity.forecast.evaluation_windows} janelas de 14 dias.</p>
           <details>
             <summary>Ver valores diários da projeção</summary>
@@ -290,7 +309,7 @@
           {:else}
             <p>{page.historyUnavailable} {years.length === 1 ? 'Ano disponível neste recorte: ' + activity.year + '.' : ''}</p>
           {/if}
-          <ActivityTrend data={historical} referenceLabel={baselineYears.length ? page.reference : undefined} title="Detecções mensais" wide />
+          <ActivityTrend roomy data={historical} referenceLabel={baselineYears.length ? page.reference : undefined} title="Detecções mensais" wide />
         </section>
         <details class="method"><summary>Como a atividade é medida</summary><p>{page.method} {page.zero}</p><p>{page.detectionNote}</p></details>
       {:else}
@@ -303,32 +322,32 @@
 </section>
 
 <style>
-  .activity { display: grid; gap: 14px; padding: clamp(12px, 2.5vw, 32px); }
-  header h1 { font: 700 clamp(2.5rem, 5vw, 4rem)/1 var(--heading); }
+  .activity { display: grid; gap: var(--workspace-gap); padding: var(--workspace-inset); }
+  header h1 { font: 700 var(--workspace-heading)/1 var(--heading); }
   h2 { display: flex; gap: 8px; align-items: center; font: 650 clamp(1.35rem, 2.5vw, 1.8rem)/1.05 var(--heading); }
   h3 { display: flex; gap: 7px; align-items: center; font: 650 1.45rem/1.1 var(--heading); }
   h2 :global(svg), h3 :global(svg) { color: var(--accent); flex: none; }
-  p, .panel-header > span, .day-key, .area-status { color: var(--muted); font-size: .82rem; }
+  p, .panel-header > span, .day-key, .area-status { color: var(--muted); font-size: .9rem; }
   header p { margin-top: 6px; }
-  .panel, .filters { display: grid; align-content: start; gap: 10px; min-width: 0; padding: clamp(10px, 2vw, 20px); }
+  .panel, .filters { display: grid; align-content: start; gap: 14px; min-width: 0; padding: var(--panel-padding); }
   .filters { border-color: var(--accent-border); }
   .filter-row, .panel-header, .chart-key { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; }
   .panel-header { justify-content: space-between; align-items: center; }
   .panel-heading { display: grid; gap: 4px; }
-  label { display: grid; gap: 4px; min-width: 0; color: var(--muted); font-size: .75rem; }
+  label { display: grid; gap: 4px; min-width: 0; color: var(--muted); font-size: .86rem; }
   .check { display: flex; align-items: center; gap: 5px; min-height: 38px; }
   .check input { accent-color: var(--accent); }
   .coordinate { width: 7rem; }
   .activity-panel { gap: 16px; }
   .calendar-toolbar, .month-navigation, .critical-label, .draw-button, .area-status { display: flex; align-items: center; gap: 8px; }
   .calendar-toolbar, .area-status { flex-wrap: wrap; }
-  .month-arrow { display: grid; place-items: center; width: 42px; min-height: 42px; border: 1px solid var(--border-strong); border-radius: var(--control-radius); background: var(--background); color: var(--text); cursor: pointer; }
+  .month-arrow { display: grid; place-items: center; width: var(--control-height); min-height: var(--control-height); border: 1px solid var(--border-strong); border-radius: var(--control-radius); background: var(--background); color: var(--text); cursor: pointer; }
   .month-arrow:hover:enabled { color: var(--accent); border-color: var(--accent); }
   .month-arrow:disabled { opacity: .45; cursor: default; }
-  .month-select { min-height: 42px; min-width: 135px; text-transform: capitalize; }
+  .month-select { min-height: var(--control-height); min-width: 144px; text-transform: capitalize; }
   .critical-label { color: var(--heat); font-size: .8rem; font-weight: 650; }
-  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; margin: 0; }
-  .metrics > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--control-radius); background: var(--background); }
+  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; }
+  .metrics > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 12px 13px; border: 1px solid var(--border); border-radius: var(--control-radius); background: var(--background); }
   .metrics dt { color: var(--muted); font-size: .77rem; }
   .metrics dd { margin: auto 0 0; font: 650 clamp(1.45rem, 3vw, 2.35rem)/1 var(--heading); font-variant-numeric: tabular-nums; }
   .metrics .unavailable { color: var(--muted); }
@@ -344,15 +363,15 @@
   .draw-button[aria-pressed='true'] { background: var(--accent-surface); }
   .draw-hint { border-left: 2px solid var(--accent); padding-left: 8px; }
   .clear-area { padding: 4px 2px; border: 0; background: none; color: var(--accent); text-decoration: underline; font: inherit; cursor: pointer; }
-  .day-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .day-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
   .weekday, .chart-key, .day-key { color: var(--muted); font-size: .72rem; }
   .weekday { text-align: center; }
-  .day { display: grid; align-content: center; gap: 2px; min-width: 0; min-height: 44px; padding: 4px 0; border: 1px solid var(--border-strong); border-radius: var(--control-radius); background: var(--day-color, var(--background)); color: #fff; font: inherit; font-size: .8rem; text-align: center; cursor: pointer; }
+  .day { display: grid; align-content: center; gap: 2px; min-width: 0; min-height: 52px; padding: 4px 0; border: 1px solid var(--border-strong); border-radius: var(--control-radius); background: var(--day-color, var(--background)); color: #fff; font: inherit; font-size: .94rem; text-align: center; cursor: pointer; }
   .empty-cell { color: var(--text); }
   .light-cell { color: #101b19; }
   .day:hover, .day[aria-pressed='true'] { outline: 2px solid currentColor; outline-offset: -3px; }
   .day:focus-visible { outline: 2px solid currentColor; outline-offset: -3px; box-shadow: 0 0 0 2px var(--accent); }
-  .day small { color: inherit; font-size: clamp(.58rem, 1.1vw, .73rem); font-variant-numeric: tabular-nums; }
+  .day small { color: inherit; font-size: clamp(.65rem, 1.15vw, .8rem); font-variant-numeric: tabular-nums; }
   .unusual { border-style: dashed; border-color: currentColor; }
   .flag { margin-left: 2px; font-weight: 800; }
   .day-key { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; }
@@ -370,5 +389,9 @@
   th, td { padding: 5px; border-bottom: 1px solid var(--border); text-align: left; }
   .limitation { border-left: 2px solid var(--accent); padding-left: 10px; }
   @media (max-width: 1040px) { .calendar-results { grid-template-columns: 1fr; } }
-  @media (max-width: 550px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 550px) {
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .filters .filter-row:first-child > label:not(.check) { flex: 1 1 100%; }
+    .filters .filter-row:first-child > .button { width: 100%; }
+  }
 </style>

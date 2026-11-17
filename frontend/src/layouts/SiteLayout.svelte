@@ -4,7 +4,6 @@
   import PlatformSidebar from './PlatformSidebar.svelte';
 
   let { currentPage, landingSection, onLogout, children } = $props();
-  const mapScreen = $derived(currentPage === '#/mapa' || currentPage === '#/timelapse');
   const inPlatform = $derived(currentPage !== '#/' && currentPage !== '#/login');
   let content;
 
@@ -20,7 +19,7 @@
 
   <div class:platform-shell={inPlatform}>
     {#if inPlatform}<PlatformSidebar {currentPage} {onLogout} />{/if}
-    <main id="conteudo" class:map-screen={mapScreen} tabindex="-1" bind:this={content}>{@render children()}</main>
+    <main id="conteudo" tabindex="-1" bind:this={content}>{@render children()}</main>
   </div>
 
   {#if !inPlatform}<SiteFooter />{/if}
@@ -35,8 +34,7 @@
 
   .platform-shell { display: flex; height: 100svh; min-height: 0; }
   main { min-width: 0; flex: 1; }
-  .platform-shell main { min-height: 0; overflow: auto; }
-  .platform-shell main.map-screen { overflow: hidden; }
+  .platform-shell main { min-height: 0; overflow: auto; scrollbar-gutter: stable; }
   @media (max-width: 760px) { .platform-shell { flex-direction: column; } }
   main:focus { outline: none; }
 

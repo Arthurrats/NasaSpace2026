@@ -4,6 +4,7 @@ import '@fontsource-variable/inter';
 import './styles/theme.css';
 import './styles/base.css';
 import './styles/components.css';
+import './styles/platform.css';
 import { mount } from 'svelte';
 import App from './App.svelte';
 

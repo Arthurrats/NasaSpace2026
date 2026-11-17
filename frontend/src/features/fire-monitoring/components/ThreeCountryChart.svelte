@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import Skeleton from '../../../components/Skeleton.svelte';
 
   let { data: suppliedData = [], seriesLabel = 'Países', unit = 'focos' } = $props();
   let host = $state();
@@ -138,8 +139,9 @@
   });
 </script>
 
-<div class="three-chart" bind:this={host} role="img" aria-label="{unit} por {seriesLabel.toLowerCase()} e mês, em 3D">
+<div class="three-chart" bind:this={host} role="img" aria-label="{unit} por {seriesLabel.toLowerCase()} e mês, em 3D" aria-busy={!chart && !chartError}>
   {#if chartError}<p class="empty-state">A visualização 3D não está disponível neste navegador.</p>{/if}
+  {#if !chart && !chartError}<Skeleton height="100%" overlay />{/if}
   {#if hovered}<div class="chart-tooltip" style:left={Math.max(4, hovered.x) + 'px'} style:top={Math.max(4, hovered.y - 10) + 'px'}><span>{hovered.series} · {hovered.month}</span><strong>{hovered.value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} {unit}</strong></div>{/if}
 </div>
 <div class="chart-axes">
@@ -156,7 +158,7 @@
 </div>
 
 <style>
-  .three-chart { position: relative; width: 100%; height: clamp(175px, 23vw, 235px); overflow: hidden; border-radius: var(--card-radius); background: radial-gradient(ellipse at 50% 85%, var(--accent-surface), transparent 70%); }
+  .three-chart { position: relative; width: 100%; height: var(--chart-height); overflow: hidden; border-radius: var(--card-radius); background: radial-gradient(ellipse at 50% 85%, var(--accent-surface), transparent 70%); }
   .three-chart :global(canvas) { display: block; width: 100%; height: 100%; outline: none; }
   .chart-tooltip { position: absolute; z-index: 2; display: grid; gap: 3px; pointer-events: none; padding: 9px 11px; border: 1px solid var(--accent-border); border-radius: var(--control-radius); background: var(--surface-raised); color: var(--muted); font-size: .74rem; box-shadow: 0 8px 24px #0003; }
   .chart-tooltip strong { color: var(--text); font-size: .9rem; }
@@ -166,5 +168,5 @@
   .chart-labels li { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-size: .7rem; }
   .chart-labels li span { width: 8px; height: 8px; border-radius: 50%; }
   .chart-labels li strong { font-weight: 550; }
-  .month-labels { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; margin: 4px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .67rem; text-align: center; text-transform: capitalize; }
+  .month-labels { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; margin: 4px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .75rem; text-align: center; text-transform: capitalize; }
 </style>

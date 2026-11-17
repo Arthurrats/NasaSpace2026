@@ -81,17 +81,17 @@
 </div>
 
 <style>
-  .maps { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 1.35fr); padding: 0 12px 6px; gap: 12px; align-items: stretch; }
+  .maps { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 1.35fr); padding: 0 var(--panel-padding) 10px; gap: var(--workspace-gap); align-items: stretch; }
   .region, .planet { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--control-radius); background: var(--background); }
-  .heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 7px 12px; padding: 12px 13px 5px; }
-  .heading h3 { margin: 0; font-size: .92rem; }
-  .heading p { margin-top: 4px; color: var(--muted); font-size: .75rem; }
+  .heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 7px 12px; padding: 16px 16px 8px; }
+  .heading h3 { margin: 0; font-size: 1.05rem; }
+  .heading p { margin-top: 4px; color: var(--muted); font-size: .85rem; }
   .heading label { display: grid; gap: 4px; color: var(--muted); font-size: .7rem; }
-  .country-map { display: block; width: 100%; height: clamp(265px, 31vw, 390px); background: radial-gradient(ellipse, var(--accent-surface), transparent 73%); }
+  .country-map { display: block; width: 100%; height: var(--map-chart-height); background: radial-gradient(ellipse, var(--accent-surface), transparent 73%); }
   .country-map path { fill: color-mix(in srgb, var(--accent) var(--strength), var(--surface-raised)); stroke: var(--background); stroke-width: 1.15; cursor: pointer; }
   .country-map path:hover, .country-map path:focus-visible, .country-map path.active { stroke: var(--heat); stroke-width: 2; outline: none; }
   .details { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 8px 13px 12px; color: var(--muted); font-size: .72rem; }
   .details strong { color: var(--text); }
   .details a { text-decoration: underline; text-underline-offset: 3px; }
-  @media (max-width: 760px) { .maps { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 920px) { .maps { grid-template-columns: minmax(0, 1fr); } }
 </style>

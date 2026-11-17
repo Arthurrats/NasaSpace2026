@@ -215,10 +215,10 @@
   </section>
 
   <section id="equipe" class="team page-section" class:current={motionSection === 'equipe'} aria-labelledby="team-title" tabindex="-1">
-    <div class="container">
-      <div class="team-heading">
-        <div class="section-heading reveal"><h2 id="team-title">{copy.teamTitle}</h2><p>{copy.teamDescription}</p></div>
-        <TeamPhoto src={groupPhoto} group />
+    <div class="container team-layout">
+      <div class="team-heading section-heading reveal"><h2 id="team-title">{copy.teamTitle}</h2><p>{copy.teamDescription}</p></div>
+      <div class="team-photo">
+        <TeamPhoto {...groupPhoto} group />
       </div>
       <ul class="team-list" aria-label={copy.teamList}>
         {#each team as { initials, name, photo } (name)}
@@ -335,8 +335,16 @@
   .workflow ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
   .workflow li { display: flex; align-items: flex-start; gap: 13px; padding: 14px 0; border-top: 1px solid var(--border-strong); }
   .workflow h4 { margin: 0 0 5px; font-size: .96rem; }
-  .team-heading { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: center; gap: clamp(18px, 4vw, 55px); }
-  .team-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 0; margin: 0; list-style: none; }
+  .team-layout {
+    display: grid;
+    grid-template-areas: "heading photo" "members photo";
+    grid-template-columns: minmax(0, 1fr) clamp(270px, 36vw, 440px);
+    grid-template-rows: 1fr 1fr;
+    gap: clamp(18px, 3.2vw, 46px);
+  }
+  .team-heading { grid-area: heading; align-self: end; margin-bottom: 0; }
+  .team-photo { grid-area: photo; align-self: center; width: min(100%, 440px); justify-self: center; }
+  .team-list { grid-area: members; align-self: start; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 0; margin: 0; list-style: none; }
   .team-list li { overflow: hidden; border: 1px solid var(--border); border-radius: var(--control-radius); background: var(--background); }
   .team-list strong { display: block; padding: 10px; font-size: .84rem; overflow-wrap: anywhere; }
 
@@ -366,11 +374,12 @@
     .hero::before { background: linear-gradient(90deg, #071511d9 4%, #0a1b1175 75%), linear-gradient(0deg, #101b19, #101b1900 55%); }
     .hero-brand { margin-bottom: 17px; }
     .hero-map { width: min(100%, 680px); }
-    .team-list { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+    .team-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
   @media (max-width: 700px) {
-    .demo-layout, .team-heading, .workflow, .faq-layout { grid-template-columns: minmax(0, 1fr); }
-    .team-heading .section-heading, .faq-layout .section-heading { margin-bottom: 0; }
+    .demo-layout, .workflow, .faq-layout { grid-template-columns: minmax(0, 1fr); }
+    .team-layout { grid-template-areas: "heading" "photo" "members"; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+    .faq-layout .section-heading { margin-bottom: 0; }
     .demo-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .demo-tabs button { flex-direction: column; align-items: flex-start; justify-content: flex-start; min-height: 79px; gap: 6px; padding: 8px; font-size: .74rem; }
     .demo-tabs .story-icon { width: 30px; height: 30px; }
@@ -382,6 +391,7 @@
     .coverage .coverage-detail { font-size: .78rem; }
   }
   @media (max-width: 490px) {
+    .team-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hero h1 { font-size: clamp(3.3rem, 14vw, 4.6rem); }
     .hero-layout { gap: 26px; }
     .coverage { grid-template-columns: 1fr; }

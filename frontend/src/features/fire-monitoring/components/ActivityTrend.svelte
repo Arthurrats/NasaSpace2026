@@ -1,13 +1,14 @@
 <script>
-  let { data: suppliedData = [], title = 'Focos de incêndio por dia', unit = 'focos', wide = false, forecastFrom, referenceLabel } = $props();
+  let { data: suppliedData = [], title = 'Focos de incêndio por dia', unit = 'focos', wide = false, roomy = false, forecastFrom, referenceLabel } = $props();
   const chartId = $props.id();
   const data = $derived(Array.isArray(suppliedData) ? suppliedData : []);
   let measuredWidth = $state(0);
   let activeIndex = $state(null);
-  const width = $derived(wide ? Math.max(265, measuredWidth) : 438);
-  const height = $derived(wide ? 240 : 190);
-  const left = $derived(wide ? 51 : 42);
-  const right = $derived(width - 22);
+  const width = $derived(wide || roomy ? Math.max(238, measuredWidth) : 438);
+  const expandedHeight = $derived(wide && measuredWidth > 600 ? 304 : wide ? 248 : 224);
+  const height = $derived(roomy ? expandedHeight : wide ? 240 : 190);
+  const left = $derived(roomy || wide ? 52 : 42);
+  const right = $derived(width - (roomy ? 28 : 22));
   const axisFormat = new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
   const valueFormat = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 
@@ -49,16 +50,16 @@
   });
   const active = $derived(activeIndex === null ? null : data[activeIndex]);
   function inspect(event) {
-    if (!wide || !data.length) return;
+    if ((!wide && !roomy) || !data.length) return;
     const rectangle = event.currentTarget.getBoundingClientRect();
     const position = (event.clientX - rectangle.left) / rectangle.width * width;
     activeIndex = Math.round(Math.min(1, Math.max(0, (position - left) / (right - left))) * (data.length - 1));
   }
 </script>
 
-<div class="trend-wrap" class:wide bind:clientWidth={measuredWidth}>
+<div class="trend-wrap" class:wide class:roomy bind:clientWidth={measuredWidth}>
 <svg class="chart trend-chart" viewBox="0 0 {width} {height}" role="img" aria-labelledby="{chartId}-title {chartId}-desc"
-  onpointermove={inspect} onpointerleave={() => { activeIndex = null; }}>
+  onpointermove={inspect} onpointerdown={inspect} onpointerleave={(event) => { if (event.pointerType === 'mouse') activeIndex = null; }}>
   <title id="{chartId}-title">{title}</title>
   <desc id="{chartId}-desc">{data.length <= 24 ? data.map(({ label, value, reference }) => label + ': ' + value + ' ' + unit + (referenceLabel && reference != null ? ' · ' + referenceLabel + ': ' + valueFormat.format(reference) : '')).join(', ') : data.length + ' observações. Escala até ' + valueFormat.format(maxValue) + ' ' + unit}.</desc>
   <defs>
@@ -103,8 +104,10 @@
   .trend-point { fill: var(--heat); stroke: var(--surface); stroke-width: 1.5; }
   .chart-grid { stroke: var(--border-strong); stroke-dasharray: 3 4; }
   .trend-wrap { min-width: 0; position: relative; }
+  .roomy { margin-inline: 8px; }
   .wide { margin-inline: 10px; }
-  .wide .chart { width: 100%; margin: 0; }
+  .roomy.wide { margin-inline: 14px; }
+  .wide .chart, .roomy .chart { width: 100%; margin: 0; }
   .chart-cursor { stroke: var(--indicator); opacity: .7; }
-  .trend-tooltip { position: absolute; right: 22px; top: 3px; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--control-radius); background: var(--background); color: var(--text); font-size: .74rem; pointer-events: none; }
+  .trend-tooltip { position: absolute; right: 12px; top: 3px; max-width: calc(100% - 24px); padding: 7px 9px; border: 1px solid var(--border); border-radius: var(--control-radius); background: var(--background); color: var(--text); font-size: .82rem; pointer-events: none; }
 </style>

@@ -19,17 +19,17 @@
 </script>
 
 <fieldset class="fields" aria-label="Período de 2025">
-  <label>Atalho de período
+  <label>Período
     <select class="data-control" value={preset} onchange={pickPreset}>
       <option value="" disabled>Personalizado</option>
       {#each presets as item (item.label)}<option value={item.label}>{item.label}</option>{/each}
     </select>
   </label>
-  <label>De <input class="data-control" type="date" min={first} max={end || last} bind:value={start} required /></label>
-  <label>Até <input class="data-control" type="date" min={start || first} max={last} bind:value={end} required /></label>
+  <label>Data inicial <input class="data-control" type="date" min={first} max={end || last} bind:value={start} required /></label>
+  <label>Data final <input class="data-control" type="date" min={start || first} max={last} bind:value={end} required /></label>
 </fieldset>
 
 <style>
-  .fields { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
-  .fields label { display: grid; gap: 5px; color: var(--muted); font-size: .75rem; }
+  .fields { display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+  .fields label { display: grid; min-width: 0; gap: 6px; color: var(--muted); font-size: .86rem; }
 </style>

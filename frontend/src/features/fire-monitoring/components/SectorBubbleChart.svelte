@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import Skeleton from '../../../components/Skeleton.svelte';
 
   let { rows, selected } = $props();
   let host = $state();
@@ -99,12 +100,13 @@
   });
 </script>
 
-<div class="scene" bind:this={host} role="img" aria-label="Nove setores geográficos em 3D. O volume de cada bolha representa o valor da métrica.">
+<div class="scene" bind:this={host} role="img" aria-label="Nove setores geográficos em 3D. O volume de cada bolha representa o valor da métrica." aria-busy={!draw && !unavailable}>
   {#if unavailable}<p>3D indisponível neste navegador. Consulte os valores por setor ao lado.</p>{/if}
+  {#if !draw && !unavailable}<Skeleton height="100%" overlay />{/if}
 </div>
 
 <style>
-  .scene { width: 100%; height: clamp(185px, 25vw, 255px); background: radial-gradient(ellipse, var(--accent-surface), transparent 72%); }
+  .scene { position: relative; width: 100%; height: var(--chart-height); background: radial-gradient(ellipse, var(--accent-surface), transparent 72%); }
   .scene :global(canvas) { display: block; width: 100%; height: 100%; }
   p { padding: 14px; color: var(--muted); font-size: .8rem; }
 </style>

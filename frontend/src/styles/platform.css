@@ -1,0 +1,32 @@
+.platform-shell {
+  --workspace-inset: clamp(16px, 2.8vw, 40px);
+  --workspace-gap: clamp(16px, 2vw, 24px);
+  --panel-padding: clamp(16px, 2vw, 24px);
+  --chart-height: clamp(260px, 32vw, 380px);
+  --map-chart-height: clamp(310px, 37vw, 465px);
+  --workspace-heading: clamp(2.5rem, 5vw, 4.2rem);
+  --control-height: 46px;
+}
+
+.platform-shell .data-control {
+  min-width: 0;
+  min-height: var(--control-height);
+  font-size: .9375rem;
+}
+
+.platform-shell .button {
+  min-height: var(--control-height);
+  gap: 8px;
+  font-size: .9rem;
+}
+
+.platform-shell .button:disabled { opacity: .6; cursor: default; }
+.platform-shell .button-outline { background: var(--background); }
+.platform-shell .button-outline:hover:enabled { background: var(--accent-surface); }
+.platform-shell .button-outline[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-surface); }
+.platform-shell .demo-label { padding: 7px 10px; font-size: .8rem; }
+.platform-shell .chart text { font-size: 12px; }
+.platform-shell :is(button, a, select, input, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

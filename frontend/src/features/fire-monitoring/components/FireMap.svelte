@@ -7,7 +7,8 @@
 
   let {
     region = 'southAmerica', id = 'fire-map', bounds, points, title, mode = 'cluster', fill = false,
-    onAreaSelect, selectionBounds, selectableBounds, onTileError, onTilePending,
+    onAreaSelect, selectionBounds, selectableBounds, onTileError, onTilePending, territoryOutline, territoryGeometry,
+    location, locationLabel, onLocationPick,
   } = $props();
   let measuredWidth = $state(0);
   let measuredHeight = $state(0);
@@ -29,8 +30,11 @@
     }
 
     const [[west, south], [east, north]] = bounds;
+    const center = west > east ? (west + east + 360) / 2 : 0;
+    const [insetX, insetY] = territoryGeometry ? [8, 8] : [25, 18];
     return geoMercator()
-      .fitExtent([[25, 18], [width - 25, height - 18]], {
+      .rotate([-center, 0])
+      .fitExtent([[insetX, insetY], [width - insetX, height - insetY]], {
         type: 'MultiPoint',
         coordinates: [[west, south], [east, north]],
       })
@@ -42,20 +46,33 @@
   const limits = $derived(selectableBounds ?? viewBounds ?? regions.southAmerica.bounds);
   const projection = $derived(makeProjection(viewBounds));
   const path = $derived(geoPath(projection));
+  const marker = $derived(location ? projection(location) : null);
   const tiles = $derived(points?.tileQuery && bounds ? positionedTiles(bounds, projection, mode, points.tileQuery) : []);
   const visibleArea = $derived(projectArea((onAreaSelect && dragBounds) || selectionBounds));
   const visibleHotspots = $derived(region === 'world' || region === 'southAmerica'
     ? hotspots
     : hotspots.filter(({ country }) => country === region));
 
-  function eventCoordinates(event) {
+  function coordinatesAt(event) {
     const matrix = event.currentTarget.ownerSVGElement.getScreenCTM();
     if (!matrix) return;
     const { x, y } = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
-    const [longitude, latitude] = projection.invert([x, y]);
-    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
+    const point = projection.invert([x, y]);
+    if (point?.every(Number.isFinite)) return point;
+  }
+
+  function eventCoordinates(event) {
+    const point = coordinatesAt(event);
+    if (!point) return;
+    const [longitude, latitude] = point;
     const [[west, south], [east, north]] = limits;
     return [Math.max(west, Math.min(east, longitude)), Math.max(south, Math.min(north, latitude))];
+  }
+
+  function pickLocation(event) {
+    if (!event.isPrimary || event.button !== 0) return;
+    const point = coordinatesAt(event);
+    if (point) onLocationPick(point);
   }
 
   function areaTo(event) {
@@ -137,8 +154,12 @@
     <path d={path(grid)} class="grid" />
     <path d={path(land)} class="land" />
     <path d={path(borders)} class="borders" />
+    {#if territoryGeometry}
+      <path d={'M0,0H' + width + 'V' + height + 'H0Z' + (path(territoryGeometry) ?? '')}
+        class="territory-surroundings" fill-rule="evenodd" aria-hidden="true" />
+    {/if}
     {#if points?.tileQuery}
-      {#each tiles as tile (tile.url)}
+      {#each tiles as tile (tile.id)}
         <image use:loadTile={tile.url} x={tile.x} y={tile.y} width={tile.width} height={tile.height} preserveAspectRatio="none" />
       {/each}
     {:else if !points}
@@ -153,6 +174,18 @@
         </g>
       {/each}
     {/if}
+    {#if territoryOutline}
+      {@const outline = path(territoryOutline)}
+      <path d={outline} class="area-outline" vector-effect="non-scaling-stroke" aria-hidden="true" />
+      <path d={outline} class="territory-outline" vector-effect="non-scaling-stroke" aria-hidden="true" />
+    {/if}
+    {#if marker}
+      <g class="location-marker" transform="translate({marker[0]} {marker[1]})">
+        <title>{locationLabel}</title>
+        <circle r="16" />
+        <image href="/previa-icon.png" x="-11" y="-11" width="22" height="22" />
+      </g>
+    {/if}
     {#if visibleArea}
       <rect {...visibleArea} class="area-outline" vector-effect="non-scaling-stroke" aria-hidden="true" />
       <rect {...visibleArea} class="area-highlight" vector-effect="non-scaling-stroke" aria-hidden="true" />
@@ -162,6 +195,8 @@
     <rect class="draw-surface" {width} {height} role="presentation"
       onpointerdown={startSelection} onpointermove={moveSelection} onpointerup={finishSelection}
       onpointercancel={clearSelection} onlostpointercapture={clearSelection} />
+  {:else if onLocationPick}
+    <rect class="location-pick" {width} {height} role="presentation" onpointerup={pickLocation} />
   {/if}
 </svg>
 </div>
@@ -177,5 +212,11 @@
   .area-outline, .area-highlight { pointer-events: none; }
   .area-outline { fill: none; stroke: #101b19; stroke-width: 4.5; }
   .area-highlight { fill: #ffee78; fill-opacity: .12; stroke: #ffee78; stroke-width: 2; stroke-dasharray: 6 3; }
+  .territory-outline { fill: none; stroke: #ffee78; stroke-width: 2.5; stroke-dasharray: 6 4;
+    stroke-linejoin: round; pointer-events: none; }
+  .territory-surroundings { fill: var(--map-water); fill-opacity: .65; pointer-events: none; }
+  .location-marker { pointer-events: none; }
+  .location-marker circle { fill: #101b19; stroke: #ffee78; stroke-width: 2; }
+  .location-pick { fill: transparent; cursor: crosshair; }
   .draw-surface { fill: transparent; cursor: crosshair; touch-action: none; }
 </style>

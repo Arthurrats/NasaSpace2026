@@ -19,7 +19,7 @@ Abra a aplicação, clique em **Login** e selecione **Entrar com conta demo**. O
 
 A página inicial abre com um mapa ilustrativo que permite alternar entre a América do Sul e países de exemplo. A seção Recursos permite trocar o intervalo da série temporal, selecionar dias no calendário e destacar um país no comparativo. As demais seções apresentam impactos das queimadas, cobertura do acervo, fluxo de análise, casos de uso, equipe e perguntas frequentes expansíveis.
 
-O cabeçalho acompanha a rolagem e destaca a seção atual. As âncoras movem o foco e usam rolagem suave. As animações ficam restritas à seção no centro da área visível e respeitam a preferência por movimento reduzido. A área interna usa navegação lateral em telas largas e navegação compacta em telas estreitas. Os temas claro e escuro são persistidos no navegador. Os retratos da equipe vêm de `frontend/public/team/`. O espaço da foto de grupo exibe um placeholder. O rodapé oferece links para o repositório e para contato via GitHub. [Guia de design](docs/DESIGN.md)
+O cabeçalho acompanha a rolagem e destaca a seção atual. As âncoras movem o foco e usam rolagem suave. As animações ficam restritas à seção no centro da área visível e respeitam a preferência por movimento reduzido. A área interna usa navegação lateral em telas largas e navegação compacta em telas estreitas. Os temas claro e escuro são persistidos no navegador. A foto de grupo e os retratos da equipe vêm de `frontend/public/team/`. O rodapé oferece links para o repositório e para contato via GitHub. [Guia de design](docs/DESIGN.md)
 
 A [arte orbital do hero](frontend/public/previa-orbita.webp) é uma ilustração produzida com o ImageGen integrado e exportada em WebP.
 
@@ -90,7 +90,12 @@ Com o acervo atual, o Previsor usa 2025 e projeta os primeiros 14 dias e o ciclo
 | Local | Responsabilidade |
 | --- | --- |
 | `frontend/` | Svelte 5, Vite e Three.js. Interface, estados de tela, projeção cartográfica, controles, exibição de mapas, gráficos e fila de requisições. Os textos ficam principalmente em `frontend/src/content/`. |
-| `backend/app/` | Flask, Pandas, NumPy, PyArrow e Pillow. Validação, leitura dos Parquet, filtros, estatísticas, séries, setores, rankings, calendário, projeções e imagens dos blocos. |
+| `backend/app/api/` | Rotas Flask e validação dos parâmetros HTTP. |
+| `backend/app/app.py` | Instância Flask, configuração da sessão e registro das rotas. |
+| `backend/app/models/` | Modelos de detecção e paginação usados pela API. |
+| `backend/app/data/` | Leitura dos Parquet, partições do acervo e consultas de observações por área e data. |
+| `backend/app/analysis/` | Métricas, séries temporais, setores e projeções do Previsor. |
+| `backend/app/maps/` | Contornos geográficos, marcadores, grades de calor e renderização dos blocos do mapa. |
 | `dados/parquet/` | Partições por sensor, ano e país. O backend monta esse diretório como somente leitura no Docker. |
 | `docs/` | [Contrato HTTP da API](docs/API.md), [guia de design](docs/DESIGN.md), [Docker Compose Watch](docs/DOCKER.md) e [metodologia dos dados e projeções](docs/METODOLOGIA.md). |
 | `research/` | Ambiente independente para experimentos em notebooks. [Guia de pesquisa](research/README.md) |

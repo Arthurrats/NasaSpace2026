@@ -1,12 +1,12 @@
 <script>
   import { ImageIcon, UsersRound } from '@lucide/svelte';
 
-  let { src, name, initials, group = false } = $props();
+  let { src, name, initials, width, height, group = false } = $props();
 </script>
 
 <div class="photo" class:group>
   {#if src}
-    <img {src} alt={group ? 'Equipe prevIA' : `Retrato de ${name}`} loading="lazy" />
+    <img {src} {width} {height} alt={group ? 'Equipe prevIA' : `Retrato de ${name}`} loading="lazy" />
   {:else}
     <div class="placeholder" aria-hidden="true">
       {#if group}
@@ -31,15 +31,14 @@
   }
 
   .photo.group {
-    aspect-ratio: 16 / 7;
-    max-block-size: 430px;
-    margin-bottom: 16px;
-    border: 1px dashed var(--border-strong);
+    aspect-ratio: auto;
+    border: 1px solid var(--accent-border);
     border-radius: var(--card-radius);
-    background: radial-gradient(ellipse at 50% 30%, var(--surface-raised), var(--background) 82%);
   }
 
   img { width: 100%; height: 100%; min-height: 0; object-fit: cover; }
+  .group img { display: block; height: auto; }
+  .group .placeholder { padding: 24px; }
   .placeholder {
     display: grid;
     justify-items: center;

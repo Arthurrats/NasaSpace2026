@@ -8,6 +8,7 @@
   const gridColumns = 1440;
   const gridRows = 720;
   const columnLimit = 750;
+  const columnWidth = 0.0085;
 
   $effect(() => updateTexture?.(cells, metric, strongest));
 
@@ -111,10 +112,10 @@
             const polar = (Math.floor(id / gridColumns) + 0.5) / gridRows * Math.PI;
             normal.set(-Math.cos(azimuth) * Math.sin(polar), Math.cos(polar), Math.sin(azimuth) * Math.sin(polar));
             const relative = cell[valueColumn] / peak;
-            const altitude = 0.014 + 0.38 * Math.sqrt(relative);
+            const altitude = 2 * (0.03 + 0.57 * Math.sqrt(relative));
             transform.position.copy(normal).multiplyScalar(1 + altitude / 2);
             transform.quaternion.setFromUnitVectors(up, normal);
-            transform.scale.set(0.0045, altitude, 0.0045);
+            transform.scale.set(columnWidth, altitude, columnWidth);
             transform.updateMatrix();
             columns.setMatrixAt(index, transform.matrix);
             color.set(relative >= 0.6 ? '#ff6650' : relative >= 0.22 ? '#ff9a4a' : '#b6e36b');
@@ -144,12 +145,12 @@
   });
 </script>
 
-<div class="globe" bind:this={host} role="img" aria-label="Globo tridimensional com colunas perpendiculares à superfície nas células de maior atividade">
+<div class="globe" bind:this={host} role="img" aria-label="Globo tridimensional com colunas perpendiculares à superfície nas células de maior atividade" aria-busy={!updateTexture && !unavailable}>
   {#if unavailable}<p>Globo 3D indisponível neste navegador.</p>{/if}
 </div>
 
 <style>
-  .globe { width: 100%; height: clamp(265px, 31vw, 390px); background: radial-gradient(ellipse, var(--accent-surface), transparent 68%); }
+  .globe { width: 100%; height: var(--map-chart-height); background: radial-gradient(ellipse, var(--accent-surface), transparent 68%); }
   .globe :global(canvas) { display: block; width: 100%; height: 100%; }
   .globe p { padding: 16px; font-size: .8rem; color: var(--muted); }
 </style>

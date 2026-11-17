@@ -1,5 +1,6 @@
 <script>
   import { onMount, tick } from 'svelte';
+  import Skeleton from './components/Skeleton.svelte';
   import SiteLayout from './layouts/SiteLayout.svelte';
   import Landing from './pages/Landing.svelte';
   import Dashboard from './pages/Dashboard.svelte';
@@ -7,10 +8,9 @@
   import Login from './pages/Login.svelte';
   import MapWorkspace from './pages/MapWorkspace.svelte';
 
-  let currentPage = $state('#/');
   let landingSection = $state('solucao');
   let demoSession = $state(false);
-  let sessionReady = false;
+  let sessionReady = $state(false);
   let sessionBusy = $state(false);
   let sessionError = $state('');
   let loginDestination = '#/painel';
@@ -24,11 +24,12 @@
     '#/previsor': 'Previsor — prevIA',
     '#/calendario': 'Calendário — prevIA',
   };
+  let currentPage = $state(Object.hasOwn(pageTitles, window.location.hash) ? window.location.hash : '#/');
+  const checkingSession = $derived(!sessionReady && currentPage !== '#/' && currentPage !== '#/login');
 
   function syncRoute() {
-    if (!sessionReady) return;
     let hash = window.location.hash;
-    if (Object.hasOwn(pageTitles, hash) && hash !== '#/' && hash !== '#/login' && !demoSession) {
+    if (sessionReady && Object.hasOwn(pageTitles, hash) && hash !== '#/' && hash !== '#/login' && !demoSession) {
       loginDestination = hash;
       hash = '#/login';
       window.history.replaceState(null, '', hash);
@@ -50,7 +51,9 @@
           section.focus({ preventScroll: true });
         } else if (pageChanged) {
           window.scrollTo({ top: 0, behavior });
-          document.getElementById('conteudo')?.focus({ preventScroll: true });
+          const main = document.getElementById('conteudo');
+          main?.scrollTo({ top: 0, behavior: 'instant' });
+          main?.focus({ preventScroll: true });
         }
       });
     }
@@ -65,7 +68,7 @@
   }
 
   async function enterDemo() {
-    if (sessionBusy) return;
+    if (!sessionReady || sessionBusy) return;
     sessionBusy = true;
     sessionError = '';
     try {
@@ -81,7 +84,7 @@
   }
 
   async function leaveDemo() {
-    if (sessionBusy) return;
+    if (!sessionReady || sessionBusy) return;
     sessionBusy = true;
     sessionError = '';
     try {
@@ -107,10 +110,18 @@
 <svelte:window onhashchange={syncRoute} />
 <SiteLayout {currentPage} {landingSection} onLogout={leaveDemo}>
   {#if sessionError}<p class="session-error" role="alert">{sessionError}</p>{/if}
-  {#if currentPage === '#/painel' && demoSession}
+  {#if checkingSession}
+    <div class="session-placeholder">
+      <p class="sr-only" role="status">Verificando sessão demonstrativa…</p>
+      <Skeleton width="14rem" height="2.5rem" />
+      {#if currentPage !== '#/mapa' && currentPage !== '#/timelapse'}
+        <Skeleton height="clamp(14rem, 42vh, 28rem)" />
+      {/if}
+    </div>
+  {:else if currentPage === '#/painel' && demoSession}
     <Dashboard />
   {:else if currentPage === '#/login'}
-    <Login onLogin={enterDemo} busy={sessionBusy} />
+    <Login onLogin={enterDemo} busy={sessionBusy} checking={!sessionReady} />
   {:else if currentPage === '#/mapa' && demoSession}
     <MapWorkspace />
   {:else if currentPage === '#/timelapse' && demoSession}
@@ -126,6 +137,7 @@
 
 <style>
   .session-error { margin: 12px; padding: 10px 14px; border: 1px solid var(--critical); border-radius: var(--control-radius); color: var(--text); background: var(--surface); }
+  .session-placeholder { display: grid; gap: 16px; padding: clamp(12px, 2.5vw, 32px); }
   @media (prefers-reduced-motion: reduce) {
     :global(html) { scroll-behavior: auto; }
   }

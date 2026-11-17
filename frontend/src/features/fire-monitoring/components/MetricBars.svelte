@@ -18,10 +18,10 @@
 {/if}
 
 <style>
-  .metric-bars { display: grid; gap: 10px; margin: 0; padding: 6px 14px 12px; list-style: none; }
-  .bar-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; font-size: .8rem; }
-  .bar-label span { overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
+  .metric-bars { display: grid; gap: 12px; margin: 0; padding: 4px var(--panel-padding) 14px; list-style: none; }
+  .bar-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; font-size: .88rem; }
+  .bar-label span { min-width: 0; overflow-wrap: anywhere; color: var(--muted); }
   .bar-label strong { flex: none; font-variant-numeric: tabular-nums; }
-  .bar-track { height: 8px; overflow: hidden; border-radius: 999px; background: var(--background); }
+  .bar-track { height: 10px; overflow: hidden; border-radius: 999px; background: var(--background); }
   .bar-track div { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--indicator)); transition: width 420ms ease; }
 </style>

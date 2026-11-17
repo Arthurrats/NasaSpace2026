@@ -1,17 +1,21 @@
 <script>
-  import { onMount, untrack } from 'svelte';
-  import { Activity, Box, Flame, Globe, TrendingUp } from '@lucide/svelte';
+  import { untrack } from 'svelte';
+  import { Activity, Box, Flame, Globe, SlidersHorizontal, TrendingUp } from '@lucide/svelte';
+  import Skeleton from '../components/Skeleton.svelte';
   import ActivityTrend from '../features/fire-monitoring/components/ActivityTrend.svelte';
+  import DetectionCharts from '../features/fire-monitoring/components/DetectionCharts.svelte';
   import MetricBars from '../features/fire-monitoring/components/MetricBars.svelte';
   import ThreeCountryChart from '../features/fire-monitoring/components/ThreeCountryChart.svelte';
   import SectorBubbleChart from '../features/fire-monitoring/components/SectorBubbleChart.svelte';
   import PeriodFields from '../features/fire-monitoring/components/PeriodFields.svelte';
   import WorldGridMap from '../features/fire-monitoring/components/WorldGridMap.svelte';
+  import MapWorkspace from './MapWorkspace.svelte';
   import { periodLabel } from '../features/fire-monitoring/data/timeline.js';
-  import { regions } from '../features/fire-monitoring/data/demo.js';
+  import { countriesQuery, summaryQuery } from '../features/fire-monitoring/data/summary.js';
 
   import { dashboardCopy as copy, sectorNames, sectorMetrics } from '../content/platform.js';
   let { countryOnly = false } = $props();
+  let dashboardTitle;
   let country = $state(untrack(() => countryOnly ? 'brasil' : 'all'));
   let sensor = $state('all');
   let sector = $state('all');
@@ -19,11 +23,13 @@
   let startDate = $state('2025-01-01');
   let endDate = $state('2025-12-31');
   let timeStep = $state('day');
-  let availableCountries = $state([]);
-  let summary = $state();
-  let loading = $state(true);
-  let apiError = $state('');
-  let requestId = 0;
+  let summaryRequest = $state.raw(untrack(filtersQuery));
+  const availableCountries = $derived($countriesQuery.data ?? []);
+  const countriesLoading = $derived($countriesQuery.status === 'loading');
+  const countriesError = $derived($countriesQuery.status === 'error');
+  const summary = $derived($summaryRequest.data);
+  const loading = $derived($summaryRequest.status === 'loading');
+  const apiError = $derived($summaryRequest.error?.message);
   const visibleCountries = $derived(summary?.by_country ?? []);
   const selectedMetric = $derived(sectorMetrics.find(metric => metric.key === sectorMetric));
   const sectorValues = $derived.by(() => {
@@ -93,64 +99,56 @@
   ]);
   const metricIcons = { hotspots: Flame, regions: Globe, frp: Activity, average: TrendingUp, peak: Box, median: Activity };
 
-  async function loadSummary() {
-    const id = ++requestId;
-    loading = true;
-    apiError = '';
-    const params = new URLSearchParams({ sensor, country, start_date: startDate, end_date: endDate, bbox: regions.southAmerica.bounds.flat().join(',') });
-    if (countryOnly) params.set('sector', sector);
-    else params.set('grid', '1');
-    try {
-      const response = await fetch('/api/summary?' + params);
-      if (!response.ok) throw new Error('A API não conseguiu consultar o conjunto selecionado.');
-      const data = await response.json();
-      if (!Array.isArray(data.by_country) || !Array.isArray(data.by_sensor) || !Array.isArray(data.by_intensity)
-        || !['day', 'week', 'month'].every(step => Array.isArray(data.series?.[step]))
-        || !Array.isArray(data.monthly_comparison?.country) || !Array.isArray(data.monthly_comparison?.sensor)
-        || (countryOnly && !Array.isArray(data.by_sector))) {
-        throw new Error('A API retornou um resumo em formato inválido.');
-      }
-      if (id === requestId) summary = data;
-    } catch (error) {
-      if (id === requestId) {
-        summary = undefined;
-        apiError = error.message;
-      }
-    } finally {
-      if (id === requestId) loading = false;
-    }
+  function filtersQuery() {
+    return summaryQuery({ sensor, country, startDate, endDate, sector, countryOnly });
   }
 
-  onMount(async () => {
-    try {
-      const response = await fetch('/api/countries');
-      if (response.ok) availableCountries = (await response.json()).countries;
-    } catch {
-      apiError = 'Não foi possível carregar a lista de países.';
-    }
-    await loadSummary();
-  });
+  function applyFilters(event) {
+    event.preventDefault();
+    const next = filtersQuery();
+    if (next.key === summaryRequest.key) summaryRequest.refresh();
+    else summaryRequest = next;
+  }
+
+  function showIndicators() {
+    dashboardTitle?.focus({ preventScroll: true });
+    dashboardTitle?.scrollIntoView({ block: 'start' });
+  }
 </script>
 
+{#snippet chartSkeleton(height)}
+  <div class="card chart-card skeleton-chart" aria-hidden="true">
+    <Skeleton width="min(55%, 16rem)" />
+    <Skeleton {height} />
+  </div>
+{/snippet}
+
 <div class="dashboard-content">
+  {#if !countryOnly}<MapWorkspace embedded onViewIndicators={showIndicators} />{/if}
   <section class="dashboard-intro" aria-labelledby="dashboard-title">
     <div>
       <p class="eyebrow"><span class="status-dot"></span> {copy.label}</p>
-      <h1 id="dashboard-title">{countryOnly ? 'Análise por país' : copy.title}<span>.</span></h1>
+      <h1 id="dashboard-title" tabindex="-1" bind:this={dashboardTitle}>{countryOnly ? 'Análise por país' : copy.title}</h1>
       <p>{countryOnly ? 'Compare focos, potência radiativa e cobertura dos sensores por setor do país.' : copy.description}</p>
     </div>
     <span class="demo-label">Dados observados · 2025</span>
   </section>
 
-  <form class="filter-panel card" aria-label="Filtros dos dados observados" onsubmit={(event) => { event.preventDefault(); loadSummary(); }}>
+  <form class="filter-panel card" aria-label="Filtros dos dados observados" onsubmit={applyFilters}>
+    <h2 class="filter-heading"><SlidersHorizontal size={19} aria-hidden="true" /> Filtrar dados</h2>
     <label>País
-      <select class="data-control" bind:value={country} disabled={loading} onchange={() => { sector = 'all'; }}>
-        {#if !countryOnly}<option value="all">América do Sul · todos os países</option>{/if}
-        {#if countryOnly && !availableCountries.length}<option value="brasil">Brasil</option>{/if}
-        {#each availableCountries as item (item.id)}
-          <option value={item.id}>{item.name}</option>
-        {/each}
-      </select>
+      {#if countriesLoading}
+        <span class="sr-only" role="status">Carregando países…</span>
+        <Skeleton width="14rem" height="42px" />
+      {:else}
+        <select class="data-control" bind:value={country} disabled={loading} onchange={() => { sector = 'all'; }}>
+          {#if !countryOnly}<option value="all">América do Sul · todos os países</option>{/if}
+          {#if countryOnly && !availableCountries.length}<option value="brasil">Brasil</option>{/if}
+          {#each availableCountries as item (item.id)}
+            <option value={item.id}>{item.name}</option>
+          {/each}
+        </select>
+      {/if}
     </label>
     {#if countryOnly}
       <label>Setor
@@ -165,24 +163,53 @@
     </label>
     <PeriodFields bind:start={startDate} bind:end={endDate} />
     <button type="submit" class="button button-primary" disabled={loading}>{loading ? 'Consultando…' : 'Aplicar filtros'}</button>
+    {#if countriesError}
+      <p role="alert">Não foi possível carregar a lista de países. <button type="button" class="retry-link" onclick={() => countriesQuery.refresh()}>Tentar novamente</button></p>
+    {/if}
     {#if apiError}<p role="alert">{apiError}</p>{:else}<p>Dados históricos observados · sem previsões. FRP em MW; classes de confiança por sensor.</p>{/if}
   </form>
 
-  {#if summary}
+  {#if loading}<p class="sr-only" role="status">Carregando dados observados…</p>{/if}
+  {#if loading || summary}
   <div class="metric-grid" aria-label={copy.metrics} aria-busy={loading}>
     {#each observedMetrics as metric (metric.id)}
       {@const Icon = metricIcons[metric.id]}
       <section class="card metric" data-metric={metric.id}>
         <h2>{metric.label}</h2>
         <span class="metric-icon"><Icon size={18} /></span>
-        <strong>{metric.value}</strong>
-        <span class="metric-detail">{metric.detail}</span>
+        {#if loading}
+          <strong><Skeleton width="5rem" height="1em" /></strong>
+          <span class="metric-detail"><Skeleton width="9rem" height=".85em" /></span>
+        {:else}
+          <strong>{metric.value}</strong>
+          <span class="metric-detail">{metric.detail}</span>
+        {/if}
       </section>
     {/each}
   </div>
+  {/if}
+
+  {#if loading}
+    {#if countryOnly}
+      {@render chartSkeleton('var(--chart-height)')}
+    {:else}
+      <div class="overview-grid">
+        {#each charts3d as chart (chart.title)}
+          {@render chartSkeleton('var(--chart-height)')}
+        {/each}
+      </div>
+      <DetectionCharts {summary} {loading} />
+    {/if}
+    <div class="series-panel">
+      {#each Array(3) as _}{@render chartSkeleton('clamp(248px, 28vw, 304px)')}{/each}
+    </div>
+    <div class="overview-grid charts-2d">
+      {#each charts2d as chart (chart.title)}{@render chartSkeleton('8rem')}{/each}
+    </div>
+  {:else if summary}
 
   {#if countryOnly}
-  <section class="card chart-card sector-panel" aria-label="Comparativo dos setores do país" aria-busy={loading}>
+  <section class="card chart-card sector-panel" aria-label="Comparativo dos setores do país">
     <header class="card-header">
       <div><h2><Globe size={17} /> Setores do país · Bolhas 3D</h2><p>Setores traçados a partir das coordenadas. O volume da bolha indica o valor da métrica.</p></div>
       <label>Métrica <select class="data-control" bind:value={sectorMetric}>
@@ -206,7 +233,7 @@
     </header>
     <WorldGridMap cells={summary.grid ?? []} rankings={summary.grid_rankings} countries={visibleCountries} />
   </section>
-  <div class="overview-grid" aria-busy={loading}>
+  <div class="overview-grid">
     {#each charts3d as chart (chart.title)}
       <section class="card chart-card" aria-label={chart.title + ' em 3D'}>
         <header class="card-header">
@@ -218,8 +245,9 @@
       </section>
     {/each}
   </div>
+  <DetectionCharts {summary} {loading} />
   {/if}
-  <section class="series-panel" aria-labelledby="series-title" aria-busy={loading}>
+  <section class="series-panel" aria-labelledby="series-title">
     <header class="series-header">
       <h2 id="series-title">Séries temporais</h2>
       <label>Intervalo
@@ -230,24 +258,24 @@
     </header>
     <section class="card chart-card" aria-labelledby="daily-title">
       <header class="card-header"><h2 id="daily-title"><Activity size={17} /> Detecções ao longo do período</h2></header>
-      {#if chartActivity.length}<ActivityTrend data={chartActivity} title="Detecções ao longo do período" wide />{:else}<p class="empty-state">Sem detecções no recorte.</p>{/if}
+      {#if chartActivity.length}<ActivityTrend roomy data={chartActivity} title="Detecções ao longo do período" wide />{:else}<p class="empty-state">Sem detecções no recorte.</p>{/if}
     </section>
     <section class="card chart-card" aria-labelledby="total-frp-title">
       <header class="card-header"><h2 id="total-frp-title"><TrendingUp size={17} /> FRP acumulada ao longo do período · MW</h2></header>
-      {#if chartFrp.length}<ActivityTrend data={chartFrp} title="FRP acumulada ao longo do período" unit="MW" wide />{:else}<p class="empty-state">Sem detecções no recorte.</p>{/if}
+      {#if chartFrp.length}<ActivityTrend roomy data={chartFrp} title="FRP acumulada ao longo do período" unit="MW" wide />{:else}<p class="empty-state">Sem detecções no recorte.</p>{/if}
     </section>
     <section class="card chart-card" aria-labelledby="hourly-title">
       <header class="card-header"><h2 id="hourly-title"><Activity size={17} /> Horário de detecção · UTC</h2></header>
-      {#if byHour.some(row => row.value > 0)}<ActivityTrend data={byHour} title="Detecções por hora UTC" wide />{:else}<p class="empty-state">Sem horários de detecção no recorte.</p>{/if}
+      {#if byHour.some(row => row.value > 0)}<ActivityTrend roomy data={byHour} title="Detecções por hora UTC" wide />{:else}<p class="empty-state">Sem horários de detecção no recorte.</p>{/if}
     </section>
   </section>
 
-  <div class="overview-grid charts-2d" aria-busy={loading}>
+  <div class="overview-grid charts-2d">
     {#if countryOnly}
       {#each sensorActivity as chart (chart.sensor)}
         <section class="card chart-card" aria-label={chart.sensor + ' por mês'}>
           <header class="card-header"><h2>{chart.sensor} por mês</h2></header>
-          <ActivityTrend data={chart.data} title={chart.sensor + ' por mês'} />
+          <ActivityTrend roomy data={chart.data} title={chart.sensor + ' por mês'} />
         </section>
       {/each}
     {/if}
@@ -262,14 +290,14 @@
 </div>
 
 <style>
-  .dashboard-content { padding-inline: clamp(12px, 2.5vw, 40px); }
+  .dashboard-content { padding-inline: var(--workspace-inset); }
 
   .dashboard-intro {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
     gap: 16px;
-    margin-block: clamp(24px, 4vw, 46px) 24px;
+    margin-block: clamp(26px, 4vw, 52px) var(--workspace-gap);
   }
 
   .dashboard-intro h1 {
@@ -277,19 +305,19 @@
     font-family: var(--heading);
     font-weight: 700;
     letter-spacing: -.015em;
-    font-size: clamp(3.2rem, 7vw, 6rem);
-    line-height: .94;
+    font-size: var(--workspace-heading);
+    line-height: 1;
+    scroll-margin-top: 18px;
   }
 
-  .dashboard-intro h1 span { color: var(--accent); }
   .dashboard-intro p:not(.eyebrow) { color: var(--muted); font-size: .95rem; line-height: 1.6; }
   .dashboard-intro .demo-label { flex: none; }
 
   .metric-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: var(--workspace-gap);
+    margin-bottom: var(--workspace-gap);
   }
 
   .metric {
@@ -299,20 +327,20 @@
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 5px 8px;
-    padding: 16px 18px;
+    gap: 7px 10px;
+    padding: var(--panel-padding);
   }
 
   .metric[data-metric='hotspots'] { --metric-color: var(--heat); }
   .metric[data-metric='peak'] { --metric-color: var(--heat); }
-  .metric h2 { color: var(--muted); font-size: .8rem; font-weight: 600; }
+  .metric h2 { color: var(--muted); font-size: .9rem; font-weight: 650; }
   .metric-icon {
     display: grid;
     grid-column: 2;
     grid-row: 1;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
     border: 1px solid var(--border);
     border-radius: var(--control-radius);
     background: var(--background);
@@ -320,20 +348,20 @@
   }
 
   .metric strong { grid-column: 1 / -1; font-family: var(--heading); font-size: clamp(1.9rem, 3.2vw, 2.65rem); line-height: 1; }
-  .metric-detail { grid-column: 1; color: var(--muted); font-size: .75rem; }
+  .metric-detail { grid-column: 1 / -1; color: var(--muted); font-size: .82rem; }
 
   .overview-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-bottom: 12px;
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 375px), 1fr));
+    margin-bottom: var(--workspace-gap);
+    gap: var(--workspace-gap);
   }
-  .charts-2d { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); margin-bottom: 32px; }
-  .series-panel { display: grid; gap: 12px; margin: 22px 0; }
+  .charts-2d { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); margin-bottom: 32px; }
+  .series-panel { display: grid; gap: var(--workspace-gap); margin: 28px 0; }
   .series-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-  .series-header h2 { font-size: 1.1rem; }
+  .series-header h2 { font: 700 1.8rem/1.1 var(--heading); }
   .series-header label { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .75rem; }
-  .bar-list { max-height: 190px; overflow: auto; }
+  .bar-list { max-height: 240px; overflow: auto; }
   .sector-panel { margin-bottom: 12px; }
   .sector-panel label { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: .75rem; }
   .sector-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: center; gap: 10px; }
@@ -346,25 +374,28 @@
     flex-wrap: wrap;
     align-items: end;
     gap: 12px 18px;
-    margin-bottom: 16px;
-    padding: 15px 18px;
+    margin-bottom: var(--workspace-gap);
+    padding: var(--panel-padding);
     background: var(--accent-surface);
     border-color: var(--accent-border);
   }
 
-  .filter-panel label { display: grid; gap: 6px; color: var(--muted); font-size: .75rem; font-weight: 650; }
+  .filter-heading { display: flex; align-items: center; gap: 9px; flex-basis: 100%; font-size: 1.06rem; }
+  .filter-heading :global(svg) { color: var(--indicator); }
+  .filter-panel label { display: grid; gap: 6px; color: var(--muted); font-size: .86rem; font-weight: 650; }
   .filter-panel > p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: .75rem; }
   .filter-panel button:disabled { opacity: .65; cursor: wait; }
+  .retry-link { border: 0; padding: 0; color: var(--accent); background: none; text-decoration: underline; }
   .empty-state { padding: 18px; color: var(--muted); font-size: .85rem; }
 
-  .filter-panel > p { margin-left: auto; color: var(--muted); font-size: .75rem; }
-
-  .card-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px 7px; }
-  .card-header h2 { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 670; }
+  .card-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: var(--panel-padding); padding-bottom: 12px; }
+  .card-header h2 { display: flex; align-items: center; gap: 9px; font-size: 1.12rem; font-weight: 670; }
   .card-header h2 :global(svg) { color: var(--indicator); }
-  .card-header p { margin-top: 5px; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+  .card-header p { margin-top: 5px; color: var(--muted); font-size: .875rem; line-height: 1.5; }
 
   .chart-card { min-width: 0; padding-bottom: 8px; }
+  .skeleton-chart { display: grid; gap: 12px; margin-bottom: 12px; padding: 14px; }
+  .overview-grid .skeleton-chart, .series-panel .skeleton-chart { margin-bottom: 0; }
 
   @media (max-width: 760px) {
     .overview-grid { grid-template-columns: 1fr; }
@@ -374,8 +405,9 @@
 
   @media (max-width: 560px) {
     .dashboard-intro { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
-    .metric-grid { grid-template-columns: 1fr; gap: 8px; }
+    .metric-grid { gap: 10px; }
     .metric { padding: 12px 14px; }
     .metric strong { font-size: 2.2rem; }
-    }
+    .metric-icon { display: none; }
+  }
 </style>

@@ -55,8 +55,8 @@ export const landingDemoCopy = {
   help: 'Explore os recursos',
 };
 
-export const groupPhoto = '';
 const teamPhotoBase = import.meta.env.BASE_URL + 'team/';
+export const groupPhoto = { src: teamPhotoBase + 'team.png', width: 960, height: 1280 };
 export const team = [
   { initials: 'AR', name: 'Arthur Rats', photo: teamPhotoBase + 'arthur.png' },
   { initials: 'RR', name: 'RaphaelRates', photo: teamPhotoBase + 'raphael.png' },
