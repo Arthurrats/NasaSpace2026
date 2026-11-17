@@ -12,8 +12,9 @@ def health() -> tuple[dict, int]:
 @api.route("/demo-session", methods=["GET", "POST", "DELETE"])
 def demo_session():
     if request.method == "POST":
-        if not request.is_json:
-            abort(400, description="Envie a solicitação em JSON.")
+        request.max_content_length = 1024
+        if not isinstance(request.get_json(), dict):
+            abort(400, description="Envie um objeto JSON.")
         session["demo"] = True
     elif request.method == "DELETE":
         session.pop("demo", None)

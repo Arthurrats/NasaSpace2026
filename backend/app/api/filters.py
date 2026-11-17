@@ -1,7 +1,9 @@
+import re
+
 import pandas as pd
 from flask import abort, request
 
-from ..data.archive import COLUMNS, COUNTRIES, FILE_PREFIX, filter_dates, load_file
+from ..data.archive import COUNTRIES, FILE_PREFIX, filter_dates, load_file
 
 
 def requested_dates() -> tuple[pd.Timestamp | None, pd.Timestamp | None]:
@@ -9,6 +11,8 @@ def requested_dates() -> tuple[pd.Timestamp | None, pd.Timestamp | None]:
     for parameter in ("start_date", "end_date"):
         raw = request.args.get(parameter)
         try:
+            if raw and not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", raw):
+                raise ValueError
             value = pd.to_datetime(raw, format="%Y-%m-%d", utc=True) if raw else None
         except (TypeError, ValueError):
             abort(400, description=f"{parameter} precisa estar no formato YYYY-MM-DD.")
@@ -22,31 +26,13 @@ def requested_dates() -> tuple[pd.Timestamp | None, pd.Timestamp | None]:
 
 
 def query_frame() -> pd.DataFrame:
-    sensor = request.args.get("sensor", "all").strip().lower()
-    if sensor not in {"all", "modis", "viirs"}:
-        abort(400, description="sensor deve ser all, modis ou viirs.")
-
-    requested_country = request.args.get("country", "all").strip().lower()
-    country_names = list(COUNTRIES)
-    if requested_country != "all":
-        matched = [name for name in country_names if COUNTRIES[name] == requested_country or name.lower() == requested_country]
-        if not matched:
-            abort(400, description="country deve ser all ou o nome de um país sul-americano disponível.")
-        country_names = matched
-
-    frames = [load_file(kind, name) for kind in (["modis", "viirs"] if sensor == "all" else [sensor]) for name in country_names]
-    frame = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=COLUMNS + ["sensor", "country"])
-
-    frame = filter_dates(frame, *requested_dates())
-
-    raw_bbox = request.args.get("bbox")
-    if raw_bbox:
-        try:
-            west, south, east, north = (float(value) for value in raw_bbox.split(","))
-        except (TypeError, ValueError):
-            abort(400, description="bbox deve usar west,south,east,north em graus decimais.")
-        if not (-180 <= west <= 180 and -180 <= east <= 180 and -90 <= south <= 90 and -90 <= north <= 90 and south < north):
-            abort(400, description="bbox precisa conter coordenadas dentro dos limites geográficos.")
+    sensors, countries = map_sources()
+    dates = requested_dates()
+    bbox = requested_map_bbox(None) if request.args.get("bbox") else None
+    frames = [filter_dates(load_file(kind, name), *dates) for kind in sensors for name in countries]
+    frame = pd.concat(frames, ignore_index=True)
+    if bbox is not None:
+        west, south, east, north = bbox
         longitude = frame["longitude"].between(west, east) if west <= east else (frame["longitude"] >= west) | (frame["longitude"] <= east)
         frame = frame.loc[longitude & frame["latitude"].between(south, north)]
     return frame

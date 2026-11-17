@@ -14,14 +14,15 @@ from .filters import query_frame, requested_dates
 @api.get("/summary")
 @cached_response(dataset_revision)
 def summary() -> tuple[dict, int]:
-    frame = query_frame()
-    frame = frame.assign(frp=valid_frp(frame["frp"]))
-    by_sector = []
+    filters = {key: request.args[key] for key in ("sensor", "country", "start_date", "end_date", "bbox", "sector", "grid") if key in request.args}
     country = request.args.get("country", "all").strip().lower()
     name = next((name for name, slug in COUNTRIES.items() if country in (slug, name.lower())), None)
     sector = request.args.get("sector", "all")
     if sector != "all" and (name is None or sector not in {str(index) for index in range(9)}):
         abort(400, description="Selecione um setor entre 0 e 8 junto com um país.")
+    frame = query_frame()
+    frame = frame.assign(frp=valid_frp(frame["frp"]))
+    by_sector = []
     if name and not frame.empty:
         frame = assign_sectors(frame, country_sector_breaks(name))
         by_sector = summarize_sectors(frame)
@@ -29,7 +30,7 @@ def summary() -> tuple[dict, int]:
             frame = frame.loc[frame["sector"] == int(sector)]
     if frame.empty:
         return {
-            "filters": dict(request.args), "total_detections": 0, "total_frp_mw": 0,
+            "filters": filters, "total_detections": 0, "total_frp_mw": 0,
             "average_daily_detections": 0, "peak_day": None, "by_country": [],
             "by_day": [], "by_month": [], "by_sensor": [], "by_intensity": [],
             "by_country_month": [], "by_sensor_month": [], "by_daynight": [],
@@ -69,7 +70,7 @@ def summary() -> tuple[dict, int]:
     peak = daily.loc[daily["detections"].idxmax()]
     grid = geographic_grid(frame) if request.args.get("grid") == "1" else []
     return {
-        "filters": dict(request.args),
+        "filters": filters,
         "total_detections": int(len(frame)),
         "total_frp_mw": float(frame["frp"].sum()),
         "average_daily_detections": round(len(frame) / len(daily), 1),

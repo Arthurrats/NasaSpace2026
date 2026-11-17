@@ -85,7 +85,8 @@ def load_versioned_file(sensor: str, country: str, revision: tuple) -> pd.DataFr
     frame["sensor"] = sensor.upper()
     frame["country"] = country
     frame["acq_date"] = pd.to_datetime(frame["acq_date"], errors="coerce", utc=True).dt.normalize()
-    return frame.dropna(subset=["latitude", "longitude", "acq_date"])
+    valid = frame["latitude"].between(-90, 90) & frame["longitude"].between(-180, 180)
+    return frame.loc[valid & frame["acq_date"].notna()]
 
 
 def filter_dates(frame: pd.DataFrame, start: pd.Timestamp | None, end: pd.Timestamp | None) -> pd.DataFrame:

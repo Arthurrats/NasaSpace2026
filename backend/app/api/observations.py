@@ -25,7 +25,7 @@ def fires() -> tuple[dict, int]:
     limit, offset = pagination()
     frame = query_frame().sort_values(["acq_date", "acq_time"], ascending=False)
     total = len(frame)
-    selected = frame.iloc[offset:offset + limit]
+    selected = frame.iloc[offset:offset + limit] if offset < total else frame.iloc[:0]
     return {
         "data": [Detection.from_archive_row(row).to_payload() for row in selected.to_dict(orient="records")],
         "pagination": Pagination(limit=limit, offset=offset, total=total).to_payload(),

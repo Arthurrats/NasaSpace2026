@@ -188,10 +188,18 @@ Resposta `200`:
 
 Erros usam `{ "error": { "code": "...", "message": "..." } }`.
 
+A API limita a string de consulta a 2 KiB e recusa parâmetros repetidos. Os envios de sessão e de contornos exigem JSON, com limites de 1 KiB e 8 MiB, respectivamente. O cadastro aceita até 250 mil posições geográficas por contorno.
+
+No NGINX, os limites por IP são de 10 consultas de dados, 40 blocos de mapa e 2 envios de contorno por segundo, com margem para rajadas de 20, 100 e 5 requisições, respectivamente. Em implantações HTTPS, use `PREVIA_SECURE_COOKIE=1`. Defina uma chave aleatória em `PREVIA_SECRET_KEY` para manter as sessões válidas entre reinícios.
+
 | Status | Código | Quando |
 | --- | --- | --- |
 | `400` | `invalid_request` | Sensor, país, datas, caixa geográfica ou paginação inválidos |
 | `404` | `not_found` | Rota não encontrada |
+| `413` | `payload_too_large` | Corpo acima do limite |
+| `414` | `uri_too_long` | Consulta acima do limite |
+| `415` | `unsupported_media_type` | Envio sem tipo de conteúdo JSON |
+| `429` | `rate_limited` | Frequência de requisições acima do limite do NGINX |
 | `500` | `internal_error` | Erro inesperado no processamento |
 | `503` | `service_unavailable` | Arquivo Parquet ausente ou ilegível |
 

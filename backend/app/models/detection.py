@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from math import isfinite
 
 import pandas as pd
 
@@ -21,6 +22,7 @@ class Detection:
     @classmethod
     def from_archive_row(cls, row: dict) -> "Detection":
         date = row["acq_date"]
+        frp = pd.to_numeric(row["frp"], errors="coerce")
         confidence = row["confidence"]
         sensor = row["sensor"]
         if sensor == "VIIRS":
@@ -43,7 +45,7 @@ class Detection:
             sensor=sensor,
             satellite=str(row["satellite"]) if pd.notna(row["satellite"]) else None,
             confidence=str(confidence) if pd.notna(confidence) else None,
-            frp_mw=float(row["frp"]) if pd.notna(row["frp"]) else None,
+            frp_mw=float(frp) if pd.notna(frp) and isfinite(frp) else None,
             daynight=str(row["daynight"]) if pd.notna(row["daynight"]) else None,
             type=int(row["type"]) if pd.notna(row["type"]) else None,
             intensity=intensity,

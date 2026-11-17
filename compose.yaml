@@ -27,6 +27,8 @@ services:
     environment:
       PREVIA_DATA_DIR: /data/parquet
       PREVIA_REDIS_URL: ${PREVIA_REDIS_URL:-redis://redis:6379/0}
+      PREVIA_SECRET_KEY: ${PREVIA_SECRET_KEY:-}
+      PREVIA_SECURE_COOKIE: ${PREVIA_SECURE_COOKIE:-0}
     volumes:
       - ${PREVIA_DATA_HOST_DIR:-./dados/parquet}:/data/parquet:ro
     ports:

@@ -49,10 +49,14 @@ def map_territory():
 
 
 @api.get("/map/tiles/<mode>/<int:zoom>/<int:column>/<int:row>.png")
-@cached_response(map_revision, mimetype="image/png", max_age=30)
 def map_tile(mode, zoom, column, row):
     if mode not in {"circle", "pixel", "cluster", "heat", "dots"} or zoom > 22 or column >= 2 ** zoom or row >= 2 ** zoom:
         abort(400, description="Bloco do mapa inválido.")
+    return render_requested_tile(mode, zoom, column, row)
+
+
+@cached_response(map_revision, mimetype="image/png", max_age=30)
+def render_requested_tile(mode, zoom, column, row):
     date_range = requested_dates()
     sources = map_file_sources(date_range, *map_sources())
     clip = requested_map_bbox(None, allow_wrap=False, parameter="clip")
@@ -131,7 +135,7 @@ def map_foci():
     total = sum(len(chunk) for _, chunk in chunks)
     if total <= MARKER_LIMIT:
         data = [
-            [f"{source}:{index}", round(lng, 6), round(lat, 6), LEVEL_NAMES[level], 1, *map(float, weights)]
+            [f"{source}:{index}", round(lng, 6), round(lat, 6), LEVEL_NAMES[level], 1, *(float(weight) for weight in weights)]
             for source, chunk in chunks
             for index, lng, lat, level, *weights in chunk.itertuples(name=None)
         ]

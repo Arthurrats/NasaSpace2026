@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 USER 10001
 EXPOSE 5000
-CMD ["waitress-serve", "--listen=0.0.0.0:5000", "app.app:app"]
+CMD ["waitress-serve", "--listen=0.0.0.0:5000", "--max-request-header-size=16384", "--max-request-body-size=8388608", "app.app:app"]

@@ -4,13 +4,13 @@ import re
 from collections import OrderedDict
 from hashlib import sha256
 from threading import Lock
-from zlib import compress, decompress
+from zlib import compress, decompressobj, error as CompressionError
 
 import numpy as np
 from flask import abort
 from PIL import Image
 from redis.exceptions import RedisError
-from shapely import from_geojson, get_coordinates, intersects_xy, prepare, transform
+from shapely import from_geojson, intersects_xy, prepare, transform
 from shapely.errors import GEOSException
 
 from ..response_cache import redis_client
@@ -18,6 +18,7 @@ from .tiles import TILE_SIZE
 
 
 MAX_BODY = 8 * 1024 * 1024
+MAX_COORDINATES = 250_000
 _territories = OrderedDict()
 _lock = Lock()
 
@@ -59,6 +60,16 @@ class Territory:
         return image
 
 
+def _positions(coordinates, depth):
+    if not isinstance(coordinates, list) or not coordinates:
+        raise ValueError("Coordenadas inválidas.")
+    if depth:
+        for child in coordinates:
+            yield from _positions(child, depth - 1)
+    else:
+        yield coordinates
+
+
 def _parse(body):
     payload = json.loads(body)
     if not isinstance(payload, dict):
@@ -69,10 +80,18 @@ def _parse(body):
     raw = payload.get("geometry")
     if not isinstance(raw, dict) or raw.get("type") not in {"Polygon", "MultiPolygon"}:
         raise ValueError("Tipo de contorno inválido.")
-    geometry = from_geojson(json.dumps(raw))
-    coordinates = get_coordinates(geometry)
-    if not 3 < len(coordinates) <= 250_000 or not (np.abs(coordinates) <= [180, 90]).all():
+    coordinates = raw.get("coordinates")
+    depth = 2 if raw["type"] == "Polygon" else 3
+    count = 0
+    for count, position in enumerate(_positions(coordinates, depth), start=1):
+        if count > MAX_COORDINATES or len(position) != 2 or not all(
+            type(value) in {int, float} and -limit <= value <= limit
+            for value, limit in zip(position, (180, 90))
+        ):
+            raise ValueError("Coordenadas inválidas.")
+    if count < 4:
         raise ValueError("Coordenadas inválidas.")
+    geometry = from_geojson(json.dumps({"type": raw["type"], "coordinates": coordinates}, allow_nan=False))
     return Territory(geometry, seam)
 
 
@@ -118,11 +137,17 @@ def get_territory(key):
     cache = _cache()
     if cache is not None:
         try:
-            body = cache.get("previa:territory:" + key)
+            body = cache.getrange("previa:territory:" + key, 0, MAX_BODY + 65536)
         except RedisError:
             body = None
-        if body is not None:
-            territory = _parse(decompress(body))
-            _remember(key, territory)
-            return territory
+        if body:
+            try:
+                decoder = decompressobj()
+                payload = decoder.decompress(body, MAX_BODY + 1)
+                if decoder.eof and len(payload) <= MAX_BODY and sha256(payload).hexdigest() == key:
+                    territory = _parse(payload)
+                    _remember(key, territory)
+                    return territory
+            except (CompressionError, ValueError, TypeError, OverflowError, RecursionError, GEOSException):
+                pass
     abort(404, description="O contorno precisa ser enviado novamente.")
